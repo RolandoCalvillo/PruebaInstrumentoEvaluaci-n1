@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación de Desempeño</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            color: #1a202c;
+        }
+        .container {
+            max-width: 1000px;
+        }
+        .bg-cnci-blue {
+            background-color: #2a6aff;
+        }
+        .text-cnci-orange {
+            color: #ff8500;
+        }
+        .progress-bar-container {
+            height: 12px;
+            background-color: #e2e8f0;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            transition: width 0.5s ease-in-out;
+            border-radius: 9999px;
+        }
+        .tab-button.active {
+            border-bottom: 3px solid #ff8500;
+            font-weight: 600;
+            color: #2a6aff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .card {
+            background-color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .comment-box {
+            background-color: #f7fafc;
+            border-left: 4px solid #ff8500;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        .badge-card {
+            min-height: 150px;
+        }
+        .popup-modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        .popup-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 1rem;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <!-- Modal para alertas -->
+    <div id="alertModal" class="popup-modal">
+        <div class="popup-content">
+            <div class="flex justify-between items-center pb-3">
+                <p class="text-xl font-bold text-cnci-blue">Aviso 💡</p>
+                <span class="close-button text-2xl font-bold cursor-pointer">&times;</span>
+            </div>
+            <div class="text-gray-700">
+                <p id="alertMessage">Este es un mensaje de prueba.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor Principal de la aplicación -->
+    <div id="app" class="container mx-auto">
+        <!-- Pantalla de Inicio -->
+        <div id="start-screen" class="screen flex flex-col items-center justify-center min-h-screen">
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-center text-cnci-blue mb-2">Evaluación Modular – Departamento de Servicios Estudiantiles</h1>
+            <h2 class="text-2xl sm:text-3xl font-semibold text-center text-gray-600 mb-6">Módulo M8, Agosto 2025 🗓️</h2>
+            <p class="text-lg text-center text-gray-600 mb-8 max-w-xl">Consulta tu desempeño del módulo de manera detallada ingresando tu usuario Vici. ✨</p>
+            
+            <div class="card p-8 rounded-2xl w-full max-w-md">
+                <label for="user-input" class="block text-gray-700 font-semibold mb-2">Usuario Vici 👤</label>
+                <input type="text" id="user-input" placeholder="Ejemplo: Asesor01" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cnci-blue mb-6 text-cnci-orange">
+                <button id="consult-button" class="w-full bg-cnci-blue text-white py-3 px-6 rounded-xl font-semibold shadow-lg hover:bg-opacity-90 transition-all duration-300 ease-in-out">
+                    Consultar mi Evaluación 🚀
+                </button>
+            </div>
+        </div>
+
+        <!-- Pantalla de Evaluación -->
+        <div id="evaluation-screen" class="screen hidden min-h-screen">
+            <div class="bg-cnci-blue text-white text-center p-6 rounded-b-2xl">
+                <h1 class="text-3xl font-bold">Resultados de Evaluación 📝</h1>
+                <h2 class="text-xl mt-2"><span id="user-name"></span></h2>
+                <p id="user-status" class="text-cnci-orange font-semibold mt-1">Desempeño Destacado ✨</p>
+                <button id="back-button" class="mt-4 px-4 py-2 bg-white text-cnci-blue rounded-full font-semibold shadow-md hover:bg-gray-200 transition-colors">
+                    ⬅️ Volver
+                </button>
+            </div>
+
+            <!-- Navegación por pestañas -->
+            <div class="card p-4 rounded-t-2xl mt-8">
+                <div class="flex justify-between md:justify-center items-center">
+                    <button class="tab-button active p-3 mx-2 text-gray-500 hover:text-cnci-blue transition-colors" data-tab="summary">Resumen General 📊</button>
+                    <button class="tab-button p-3 mx-2 text-gray-500 hover:text-cnci-blue transition-colors" data-tab="trends">Tendencias 📈</button>
+                    <button class="tab-button p-3 mx-2 text-gray-500 hover:text-cnci-blue transition-colors" data-tab="badges">Insignias 🏅</button>
+                </div>
+            </div>
+
+            <!-- Contenido de las pestañas -->
+            <div class="card p-6 rounded-b-2xl mb-8">
+                <!-- Pestaña de Resumen General -->
+                <div id="summary" class="tab-content active">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                        <div class="bg-gray-100 p-4 rounded-xl">
+                            <h3 class="text-xl font-bold mb-2">Calificación General ⭐</h3>
+                            <div class="flex items-center">
+                                <span id="general-score" class="text-4xl font-extrabold text-cnci-blue mr-4">87%</span>
+                                <div class="w-full">
+                                    <div class="progress-bar-container">
+                                        <div id="general-score-bar" class="progress-bar bg-cnci-blue" style="width: 87%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-100 p-4 rounded-xl">
+                            <h3 class="text-xl font-bold mb-2">Meta de Llamadas 📞</h3>
+                            <div class="flex items-center">
+                                <span id="calls-goal" class="text-4xl font-extrabold text-cnci-orange mr-4">95%</span>
+                                <div class="w-full">
+                                    <div class="progress-bar-container">
+                                        <div id="calls-goal-bar" class="progress-bar bg-cnci-orange" style="width: 95%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-bold text-cnci-blue mb-4">Criterios de Evaluación 🎯</h3>
+                    <div id="criteria-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Criterios se llenarán dinámicamente -->
+                    </div>
+                    
+                    <div class="mt-8">
+                        <h3 class="text-2xl font-bold text-cnci-blue mb-4">Comentarios Generales del Supervisor 💬</h3>
+                        <div class="comment-box p-4 rounded-r-xl">
+                            <p id="supervisor-comments" class="text-gray-700 italic">Aquí va un comentario general del supervisor.</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 text-center">
+                        <button id="details-button" class="bg-cnci-blue text-white py-3 px-6 rounded-xl font-semibold shadow-lg hover:bg-opacity-90 transition-all duration-300 ease-in-out">
+                            Detalles de Evaluación 🔍
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pestaña de Tendencias -->
+                <div id="trends" class="tab-content">
+                    <h3 class="text-2xl font-bold text-cnci-blue mb-4">Evolución de Desempeño 📊</h3>
+                    <div class="card p-4 rounded-xl mb-6">
+                        <div class="chart-container">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-2xl font-bold text-cnci-blue mb-4">Comparativa de Desempeño 🔄</h3>
+                    <div id="comparison-container" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <!-- Comparativa de últimos 3 meses se llena dinámicamente -->
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                        <div>
+                            <h3 class="text-2xl font-bold text-cnci-orange mb-4">Métricas Destacadas ✨</h3>
+                            <div class="bg-gray-100 p-4 rounded-xl">
+                                <h4 class="text-xl font-semibold mb-2">La mayor mejora 🚀</h4>
+                                <p id="major-improvement" class="text-gray-700">Comentario sobre la mayor mejora.</p>
+                            </div>
+                            <div class="mt-4 p-4 rounded-xl bg-gray-100">
+                                <h4 class="text-xl font-semibold mb-2">Área Crítica ⚠️</h4>
+                                <p id="critical-area" class="text-gray-700">Comentario sobre el área crítica.</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-cnci-blue mb-4">Comentarios del Supervisor 💬</h3>
+                            <div class="comment-box p-4 rounded-r-xl">
+                                <p id="trends-supervisor-comments" class="text-gray-700 italic">Comentarios generales del supervisor sobre las tendencias.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pestaña de Insignias -->
+                <div id="badges" class="tab-content">
+                    <h3 class="text-2xl font-bold text-cnci-blue mb-4">Tus Insignias 🏆</h3>
+                    <div id="badges-container" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+                        <!-- Insignias se llenarán dinámicamente -->
+                    </div>
+                    
+                    <h3 class="text-2xl font-bold text-cnci-orange mb-4">Próximas Insignias 🌟</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="card p-6 rounded-xl badge-card">
+                            <h4 class="text-xl font-bold text-cnci-blue mb-2">Fortalezas 💪</h4>
+                            <ul id="strengths-list" class="list-disc list-inside text-gray-700">
+                                <!-- Fortalezas se llenarán dinámicamente -->
+                            </ul>
+                        </div>
+                        <div class="card p-6 rounded-xl badge-card">
+                            <h4 class="text-xl font-bold text-cnci-blue mb-2">Áreas de Oportunidad 🧠</h4>
+                            <ul id="opportunities-list" class="list-disc list-inside text-gray-700">
+                                <!-- Oportunidades se llenarán dinámicamente -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Datos simulados para cada asesor
+        const asesorData = {
+            "Asesor01": {
+                name: "Carlos Rodríguez",
+                status: "Desempeño Destacado ✨",
+                summary: {
+                    generalScore: 92,
+                    callsGoal: 95,
+                    criteria: {
+                        "Retención": { score: 95, comment: "Excelente seguimiento y retención de alumnos. ¡Gran trabajo!" },
+                        "Reincorporación": { score: 88, comment: "Buen desempeño, pero se puede mejorar el seguimiento a casos difíciles." },
+                        "Procesos": { score: 98, comment: "Dominio total de los procesos, sin errores." },
+                        "Llamada": { score: 95, comment: "Excelente calidad en las llamadas y manejo de objeciones." },
+                        "WhatsApp": { score: 90, comment: "Respuestas claras y rápidas. ¡Sigue así!" },
+                        "Correo electrónico": { score: 96, comment: "Excelente uso del lenguaje formal y resolutivo." },
+                        "Viva Engage": { score: 100, comment: "Participación activa y valiosa en la plataforma." },
+                        "Actividades administrativas": { score: 93, comment: "Precisión y puntualidad en la entrega de reportes." }
+                    },
+                    supervisorComments: "Carlos ha demostrado un desempeño excepcional este mes, superando la mayoría de las metas. Su proactividad y atención al detalle son un ejemplo para el equipo. ¡Felicitaciones!",
+                    detailsUrl: "https://www.ejemplo.com/detalles_asesor01"
+                },
+                trends: {
+                    scores: {
+                        "Ene": 82, "Feb": 84, "Mar": 87, "Abr": 89, "May": 90, "Jun": 92
+                    },
+                    comparison: {
+                        lastMonth: { month: "Mayo", score: 90, diff: 2 },
+                        twoMonthsAgo: { month: "Abril", score: 89, diff: 3 },
+                        threeMonthsAgo: { month: "Marzo", score: 87, diff: 5 }
+                    },
+                    majorImprovement: "Mejoró en un 5% el manejo de procesos. El uso de la guía de procedimientos fue clave para este logro.",
+                    criticalArea: "El tiempo de respuesta en correos electrónicos es un área de oportunidad. Se sugiere priorizar los correos de alta urgencia.",
+                    supervisorComments: "La evolución de Carlos es notable. Ha mantenido una tendencia ascendente, especialmente en los últimos tres meses. Es importante seguir trabajando en las áreas de oportunidad para mantener este nivel."
+                },
+                badges: {
+                    earned: [
+                        { name: "Maestro de Procesos", description: "Reconocimiento por mantener un excelente seguimiento de protocolos durante 3 meses consecutivos." },
+                        { name: "Precisión en Calidad", description: "Por la alta calidad en la atención al cliente." },
+                        { name: "Solucionador(a)", description: "Por resolver casos complejos con éxito y rapidez." }
+                    ],
+                    next: {
+                        strengths: ["Excelente seguimiento de protocolos de atención.", "Alta calidad en la comunicación con clientes.", "Buena capacidad para resolver casos complejos."],
+                        opportunities: ["Mejorar tiempos de respuesta en llamadas de alto volumen.", "Incrementar conocimiento de productos nuevos.", "Desarrollar técnicas de venta cruzada."]
+                    }
+                }
+            },
+            "Asesor02": {
+                name: "Maria López",
+                status: "En Progreso 📈",
+                summary: {
+                    generalScore: 85,
+                    callsGoal: 90,
+                    criteria: {
+                        "Retención": { score: 85, comment: "Desempeño sólido, pero con potencial de mejora." },
+                        "Reincorporación": { score: 78, comment: "Es necesario un plan de acción para mejorar los resultados." },
+                        "Procesos": { score: 90, comment: "Sigue los procesos de manera correcta." },
+                        "Llamada": { score: 88, comment: "Buena calidad en las llamadas, pero se pueden acortar tiempos." },
+                        "WhatsApp": { score: 85, comment: "Respuestas claras, pero se puede mejorar la velocidad." },
+                        "Correo electrónico": { score: 82, comment: "Necesita mejorar el seguimiento de correos." },
+                        "Viva Engage": { score: 95, comment: "Participación consistente y útil." },
+                        "Actividades administrativas": { score: 80, comment: "Hay que ser más meticuloso en la entrega de reportes." }
+                    },
+                    supervisorComments: "Maria está en el camino correcto. Su compromiso es evidente, pero debe enfocarse en las áreas que requieren mayor atención para alcanzar su máximo potencial. ¡Ánimo!",
+                    detailsUrl: "https://www.ejemplo.com/detalles_asesor02"
+                },
+                trends: {
+                    scores: {
+                        "Ene": 78, "Feb": 80, "Mar": 82, "Abr": 84, "May": 85, "Jun": 85
+                    },
+                    comparison: {
+                        lastMonth: { month: "Mayo", score: 85, diff: 0 },
+                        twoMonthsAgo: { month: "Abril", score: 84, diff: 1 },
+                        threeMonthsAgo: { month: "Marzo", score: 82, diff: 3 }
+                    },
+                    majorImprovement: "Mejoró un 3% en la calidad de las llamadas, demostrando una escucha activa y empática.",
+                    criticalArea: "El seguimiento a reincorporaciones necesita una mejora considerable. Se sugiere un curso de acción para abordar este punto.",
+                    supervisorComments: "La curva de aprendizaje de Maria es positiva. Se mantiene estable y con un crecimiento constante. Se recomienda un enfoque en reincorporación para el próximo mes."
+                },
+                badges: {
+                    earned: [
+                        { name: "Proactivo(a)", description: "Por tomar la iniciativa en la solución de problemas." },
+                        { name: "Trabajo en Equipo", description: "Por la excelente colaboración con el resto del equipo." }
+                    ],
+                    next: {
+                        strengths: ["Compromiso y motivación.", "Habilidad para resolver problemas de manera creativa."],
+                        opportunities: ["Mejorar el seguimiento de alumnos reincorporados.", "Ser más detallista en los reportes administrativos."]
+                    }
+                }
+            },
+            // Se puede agregar más asesores siguiendo este formato
+        };
+
+        const screen1 = document.getElementById('start-screen');
+        const screen2 = document.getElementById('evaluation-screen');
+        const consultButton = document.getElementById('consult-button');
+        const backButton = document.getElementById('back-button');
+        const userInput = document.getElementById('user-input');
+        const userName = document.getElementById('user-name');
+        const userStatus = document.getElementById('user-status');
+        const detailsButton = document.getElementById('details-button');
+        const alertModal = document.getElementById('alertModal');
+        const alertMessage = document.getElementById('alertMessage');
+        const closeButton = document.querySelector('.close-button');
+
+        let myChart;
+
+        // Función para mostrar la ventana modal
+        function showAlert(message) {
+            alertMessage.textContent = message;
+            alertModal.style.display = 'block';
+        }
+
+        // Cierra la ventana modal
+        closeButton.onclick = function() {
+            alertModal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == alertModal) {
+                alertModal.style.display = 'none';
+            }
+        }
+
+        // Manejador de clic para el botón de consultar
+        consultButton.addEventListener('click', () => {
+            const user = userInput.value.trim();
+            if (asesorData[user]) {
+                displayEvaluation(asesorData[user]);
+                screen1.classList.add('hidden');
+                screen2.classList.remove('hidden');
+            } else {
+                showAlert("El usuario '" + user + "' no se encontró. Por favor, intente con un usuario válido.");
+            }
+        });
+
+        // Manejador de clic para el botón de volver
+        backButton.addEventListener('click', () => {
+            screen2.classList.add('hidden');
+            screen1.classList.remove('hidden');
+            if (myChart) {
+                myChart.destroy();
+            }
+            userInput.value = '';
+            // Volver a la pestaña de resumen
+            document.querySelector('.tab-button.active').classList.remove('active');
+            document.querySelector('.tab-content.active').classList.remove('active');
+            document.querySelector('[data-tab="summary"]').classList.add('active');
+            document.getElementById('summary').classList.add('active');
+        });
+
+        // Manejador de clic para el botón de detalles
+        detailsButton.addEventListener('click', () => {
+            const user = userInput.value.trim();
+            if (asesorData[user] && asesorData[user].summary.detailsUrl) {
+                window.open(asesorData[user].summary.detailsUrl, '_blank');
+            } else {
+                showAlert("No hay un enlace de detalles de evaluación disponible para este usuario.");
+            }
+        });
+
+        // Manejador de clics para las pestañas
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelector('.tab-button.active').classList.remove('active');
+                document.querySelector('.tab-content.active').classList.remove('active');
+                button.classList.add('active');
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+
+                // Si se cambia a la pestaña de tendencias, renderizar el gráfico
+                if (tabId === 'trends') {
+                    const user = userInput.value.trim();
+                    if (asesorData[user]) {
+                        renderChart(asesorData[user].trends.scores);
+                    }
+                } else if (myChart) {
+                    myChart.destroy(); // Destruir el gráfico si se cambia de pestaña
+                }
+            });
+        });
+
+        // Función principal para mostrar los datos de evaluación
+        function displayEvaluation(data) {
+            // Llenar información de la cabecera
+            userName.textContent = data.name;
+            userStatus.textContent = data.status;
+
+            // Llenar datos de la pestaña de Resumen
+            document.getElementById('general-score').textContent = `${data.summary.generalScore}%`;
+            document.getElementById('general-score-bar').style.width = `${data.summary.generalScore}%`;
+            document.getElementById('calls-goal').textContent = `${data.summary.callsGoal}%`;
+            document.getElementById('calls-goal-bar').style.width = `${data.summary.callsGoal}%`;
+
+            const criteriaContainer = document.getElementById('criteria-container');
+            criteriaContainer.innerHTML = ''; // Limpiar el contenedor
+            const emojiMap = {
+                "Retención": "🤝",
+                "Reincorporación": "↩️",
+                "Procesos": "⚙️",
+                "Llamada": "☎️",
+                "WhatsApp": "📱",
+                "Correo electrónico": "📧",
+                "Viva Engage": "🗣️",
+                "Actividades administrativas": "📝"
+            };
+
+            for (const key in data.summary.criteria) {
+                const score = data.summary.criteria[key].score;
+                const comment = data.summary.criteria[key].comment;
+                const emoji = emojiMap[key] || "✔️";
+                const criteriaDiv = `
+                    <div class="card p-4 rounded-xl">
+                        <h4 class="text-xl font-semibold mb-2">${key} ${emoji}</h4>
+                        <div class="flex items-center mb-2">
+                            <span class="text-2xl font-bold text-cnci-blue mr-4">${score}%</span>
+                            <div class="w-full progress-bar-container">
+                                <div class="progress-bar bg-cnci-blue" style="width: ${score}%;"></div>
+                            </div>
+                        </div>
+                        <div class="comment-box p-3 text-sm rounded-r-xl">
+                            <p class="text-gray-700 italic">${comment}</p>
+                        </div>
+                    </div>
+                `;
+                criteriaContainer.innerHTML += criteriaDiv;
+            }
+            document.getElementById('supervisor-comments').textContent = data.summary.supervisorComments;
+
+            // Llenar datos de la pestaña de Tendencias
+            const comparisonContainer = document.getElementById('comparison-container');
+            comparisonContainer.innerHTML = '';
+            for (const key in data.trends.comparison) {
+                const comparisonData = data.trends.comparison[key];
+                const changeEmoji = comparisonData.diff > 0 ? "🔼" : (comparisonData.diff < 0 ? "🔽" : "");
+                const changeColor = comparisonData.diff > 0 ? "text-green-500" : (comparisonData.diff < 0 ? "text-red-500" : "text-gray-500");
+                const comparisonDiv = `
+                    <div class="bg-gray-100 p-4 rounded-xl text-center">
+                        <h4 class="text-lg font-semibold mb-1">${comparisonData.month}</h4>
+                        <p class="text-4xl font-extrabold text-cnci-blue">${comparisonData.score}%</p>
+                        <p class="mt-1 text-sm ${changeColor}">${changeEmoji} ${Math.abs(comparisonData.diff)}% vs. Actual</p>
+                    </div>
+                `;
+                comparisonContainer.innerHTML += comparisonDiv;
+            }
+            document.getElementById('major-improvement').textContent = data.trends.majorImprovement;
+            document.getElementById('critical-area').textContent = data.trends.criticalArea;
+            document.getElementById('trends-supervisor-comments').textContent = data.trends.supervisorComments;
+
+            // Llenar datos de la pestaña de Insignias
+            const badgesContainer = document.getElementById('badges-container');
+            badgesContainer.innerHTML = '';
+            data.badges.earned.forEach(badge => {
+                const badgeDiv = `
+                    <div class="card p-4 rounded-xl text-center">
+                        <div class="bg-cnci-orange text-white w-16 h-16 mx-auto rounded-full flex items-center justify-center text-4xl mb-2">🏅</div>
+                        <h4 class="font-bold text-cnci-blue">${badge.name}</h4>
+                        <p class="text-sm text-gray-600">${badge.description}</p>
+                    </div>
+                `;
+                badgesContainer.innerHTML += badgeDiv;
+            });
+
+            const strengthsList = document.getElementById('strengths-list');
+            strengthsList.innerHTML = '';
+            data.badges.next.strengths.forEach(strength => {
+                strengthsList.innerHTML += `<li>${strength}</li>`;
+            });
+
+            const opportunitiesList = document.getElementById('opportunities-list');
+            opportunitiesList.innerHTML = '';
+            data.badges.next.opportunities.forEach(opportunity => {
+                opportunitiesList.innerHTML += `<li>${opportunity}</li>`;
+            });
+        }
+
+        // Función para renderizar el gráfico
+        function renderChart(scores) {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            const labels = Object.keys(scores);
+            const data = Object.values(scores);
+            
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Calificación General',
+                        data: data,
+                        borderColor: '#2a6aff',
+                        backgroundColor: 'rgba(42, 106, 255, 0.2)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 50,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
