@@ -3,575 +3,1314 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evaluación de Desempeño</title>
+    <title>Evaluación Modular</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8;
-            color: #1a202c;
+            background-color: #f3f4f6;
         }
         .container {
             max-width: 1000px;
+            margin: auto;
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        .bg-cnci-blue {
+        .text-blue-cnci {
+            color: #2a6aff;
+        }
+        .bg-blue-cnci {
             background-color: #2a6aff;
         }
-        .text-cnci-orange {
+        .text-orange-cnci {
             color: #ff8500;
         }
+        .bg-orange-cnci {
+            background-color: #ff8500;
+        }
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-button.active {
+            border-color: #2a6aff;
+            color: #2a6aff;
+        }
         .progress-bar-container {
-            height: 12px;
-            background-color: #e2e8f0;
+            width: 100%;
+            background-color: #e5e7eb;
             border-radius: 9999px;
             overflow: hidden;
         }
         .progress-bar {
-            height: 100%;
-            transition: width 0.5s ease-in-out;
+            height: 1.5rem;
             border-radius: 9999px;
-        }
-        .tab-button.active {
-            border-bottom: 3px solid #ff8500;
-            font-weight: 600;
-            color: #2a6aff;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
+            transition: width 0.5s ease-in-out;
         }
         .card {
-            background-color: white;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            perspective: 1000px;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            height: 100%;
         }
-        .comment-box {
-            background-color: #f7fafc;
-            border-left: 4px solid #ff8500;
+        .card.flipped {
+            transform: rotateY(180deg);
         }
-        .chart-container {
-            position: relative;
-            height: 300px;
-            width: 100%;
-        }
-        .badge-card {
-            min-height: 150px;
-        }
-        .popup-modal {
-            display: none;
-            position: fixed;
-            z-index: 100;
-            left: 0;
-            top: 0;
+        .card-front, .card-back {
+            position: absolute;
             width: 100%;
             height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.4);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 1rem;
         }
-        .popup-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 500px;
-            border-radius: 1rem;
-            animation: fadeIn 0.3s ease-in-out;
+        .card-back {
+            transform: rotateY(180deg);
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .chart-container {
+            height: 300px;
+        }
+        canvas {
+            max-width: 100%;
+            height: auto !important;
+        }
+        .emoji {
+            font-size: 1.25rem;
+            line-height: 1;
+            margin-right: 0.5rem;
         }
     </style>
 </head>
-<body class="p-4 sm:p-8">
-
-    <!-- Modal para alertas -->
-    <div id="alertModal" class="popup-modal">
-        <div class="popup-content">
-            <div class="flex justify-between items-center pb-3">
-                <p class="text-xl font-bold text-cnci-blue">Aviso 💡</p>
-                <span class="close-button text-2xl font-bold cursor-pointer">&times;</span>
-            </div>
-            <div class="text-gray-700">
-                <p id="alertMessage">Este es un mensaje de prueba.</p>
-            </div>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div id="screen1" class="container p-8 text-center" style="max-width: 500px;">
+        <h1 class="text-4xl font-extrabold text-blue-cnci mb-2">Evaluación Modular 📊</h1>
+        <h2 class="text-xl text-gray-700 mb-6">Departamento de Servicios Estudiantiles</h2>
+        <h3 class="text-lg font-semibold text-gray-500 mb-10">Módulo M8, Agosto 2025 🗓️</h3>
+        <p class="text-lg text-gray-600 mb-8">
+            Consulta tu desempeño del módulo de manera detallada ingresando tu usuario Vici. 🕵️‍♂️
+        </p>
+        <div class="space-y-4">
+            <input id="viciUser" type="text" placeholder="Ej: Asesor01" class="w-full px-4 py-3 border-2 border-gray-300 rounded-full focus:outline-none focus:border-blue-cnci transition-colors duration-200" required>
+            <button id="consultarBtn" class="w-full bg-blue-cnci hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200">
+                Consultar mi Evaluación 🚀
+            </button>
         </div>
+        <p id="errorMsg" class="text-red-500 mt-4 hidden">Usuario no válido. Por favor, intenta de nuevo. ❌</p>
     </div>
 
-    <!-- Contenedor Principal de la aplicación -->
-    <div id="app" class="container mx-auto">
-        <!-- Pantalla de Inicio -->
-        <div id="start-screen" class="screen flex flex-col items-center justify-center min-h-screen">
-            <h1 class="text-4xl sm:text-5xl font-extrabold text-center text-cnci-blue mb-2">Evaluación Modular – Departamento de Servicios Estudiantiles</h1>
-            <h2 class="text-2xl sm:text-3xl font-semibold text-center text-gray-600 mb-6">Módulo M8, Agosto 2025 🗓️</h2>
-            <p class="text-lg text-center text-gray-600 mb-8 max-w-xl">Consulta tu desempeño del módulo de manera detallada ingresando tu usuario Vici. ✨</p>
+    <div id="screen2" class="container p-8 hidden">
+        <div class="flex justify-between items-center mb-6">
+            <div class="text-blue-cnci font-bold text-2xl">Resultados de Evaluación 📝</div>
+            <button id="volverBtn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 transition-colors duration-200">
+                ← Volver
+            </button>
+        </div>
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 id="asesorName" class="text-2xl font-bold text-gray-800"></h2>
+                <span id="asesorUser" class="text-gray-500 text-sm"></span>
+            </div>
+            <span class="bg-orange-cnci text-white text-xs font-bold px-3 py-1 rounded-full">
+                M8, Ago 2025
+            </span>
+        </div>
+        
+        <div class="flex border-b border-gray-200 mb-6">
+            <button id="tab-resumen" class="tab-button active">Resumen General 📈</button>
+            <button id="tab-tendencias" class="tab-button">Tendencias 📊</button>
+            <button id="tab-insignias" class="tab-button">Insignias 🏅</button>
+            <button id="tab-plan" class="tab-button">Plan de Mejora 🎯</button>
+        </div>
+        
+        <div id="tabContent-resumen" class="tab-content">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-blue-100 p-6 rounded-2xl">
+                    <h3 class="text-lg font-semibold text-blue-cnci mb-2">Calificación General ⭐</h3>
+                    <div class="flex items-center">
+                        <span id="generalScore" class="text-4xl font-bold text-blue-cnci mr-4">92</span>
+                        <div class="progress-bar-container flex-1">
+                            <div id="generalProgressBar" class="progress-bar bg-blue-cnci" style="width: 92%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-orange-100 p-6 rounded-2xl">
+                    <h3 class="text-lg font-semibold text-orange-cnci mb-2">Meta de Llamadas 📞</h3>
+                    <div class="flex items-center">
+                        <span id="callsTarget" class="text-4xl font-bold text-orange-cnci mr-4">85%</span>
+                        <div class="progress-bar-container flex-1">
+                            <div id="callsProgressBar" class="progress-bar bg-orange-cnci" style="width: 85%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Criterios de Evaluación 📝</h3>
+            <div id="evaluationCriteria" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Criterios de evaluación se insertarán aquí dinámicamente -->
+            </div>
+
+            <div class="bg-gray-100 p-6 rounded-xl">
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Comentarios Generales del Supervisor 💬</h3>
+                <p id="generalComments" class="text-gray-600 italic">
+                    El desempeño del asesor fue excelente este mes, demostrando un gran compromiso y proactividad en todas las áreas. Se destaca su capacidad para resolver problemas complejos y su excelente comunicación con los estudiantes. ¡Sigue así!
+                </p>
+            </div>
             
-            <div class="card p-8 rounded-2xl w-full max-w-md">
-                <label for="user-input" class="block text-gray-700 font-semibold mb-2">Usuario Vici 👤</label>
-                <input type="text" id="user-input" placeholder="Ejemplo: Asesor01" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cnci-blue mb-6 text-cnci-orange">
-                <button id="consult-button" class="w-full bg-cnci-blue text-white py-3 px-6 rounded-xl font-semibold shadow-lg hover:bg-opacity-90 transition-all duration-300 ease-in-out">
-                    Consultar mi Evaluación 🚀
+            <div class="flex justify-center mt-8">
+                <button onclick="window.open('https://www.ejemplo.com/documento-evaluacion', '_blank')" class="bg-blue-cnci hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200">
+                    Detalles de Evaluación 📄
                 </button>
             </div>
         </div>
 
-        <!-- Pantalla de Evaluación -->
-        <div id="evaluation-screen" class="screen hidden min-h-screen">
-            <div class="bg-cnci-blue text-white text-center p-6 rounded-b-2xl">
-                <h1 class="text-3xl font-bold">Resultados de Evaluación 📝</h1>
-                <h2 class="text-xl mt-2"><span id="user-name"></span></h2>
-                <p id="user-status" class="text-cnci-orange font-semibold mt-1">Desempeño Destacado ✨</p>
-                <button id="back-button" class="mt-4 px-4 py-2 bg-white text-cnci-blue rounded-full font-semibold shadow-md hover:bg-gray-200 transition-colors">
-                    ⬅️ Volver
+        <div id="tabContent-tendencias" class="tab-content hidden">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Evolución de Desempeño 📈</h3>
+            <div class="bg-gray-100 p-6 rounded-xl mb-8 chart-container">
+                <canvas id="performanceChart"></canvas>
+            </div>
+            
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Comparativa Mensual 📉</h3>
+            <div id="monthlyComparison" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- Comparativa se insertará aquí -->
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Métricas Destacadas del Mes ✨</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-green-100 p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-green-700 mb-2">La Mayor Mejora 🚀</h4>
+                    <p id="mayorMejora" class="text-gray-600 mb-4">
+                        Retención: Incremento del 10% en comparación con el mes pasado. 
+                    </p>
+                    <div class="bg-white p-4 rounded-lg">
+                        <h5 class="font-semibold text-gray-800">Comentarios del Supervisor:</h5>
+                        <p id="comentarioMayorMejora" class="text-gray-600 text-sm italic mt-1">
+                            ¡Excelente trabajo! Se nota tu esfuerzo por mejorar la retención de los estudiantes. Sigue aplicando las estrategias que has desarrollado.
+                        </p>
+                    </div>
+                </div>
+                <div class="bg-red-100 p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-red-700 mb-2">Área Crítica 🚨</h4>
+                    <p id="areaCritica" class="text-gray-600 mb-4">
+                        Llamadas: Disminución del 5% en la calidad de las llamadas.
+                    </p>
+                    <div class="bg-white p-4 rounded-lg">
+                        <h5 class="font-semibold text-gray-800">Comentarios del Supervisor:</h5>
+                        <p id="comentarioAreaCritica" class="text-gray-600 text-sm italic mt-1">
+                            Es importante revisar los protocolos de llamada y enfocarse en la empatía. Podemos agendar una sesión de retroalimentación para analizar tus grabaciones.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tabContent-insignias" class="tab-content hidden">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Tus Insignias 🏅</h3>
+            <div id="insignias" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Insignias se insertarán aquí -->
+            </div>
+            
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Próximas Insignias ✨</h3>
+            <div class="bg-gray-100 p-6 rounded-xl">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-lg font-bold text-blue-cnci mb-2">Fortalezas 💪</h4>
+                        <ul id="fortalezas" class="list-disc list-inside text-gray-600">
+                            <!-- Fortalezas se insertarán aquí -->
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-bold text-orange-cnci mb-2">Áreas de Oportunidad 💡</h4>
+                        <ul id="oportunidades" class="list-disc list-inside text-gray-600">
+                            <!-- Oportunidades se insertarán aquí -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tabContent-plan" class="tab-content hidden">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Plan de Mejora 📝</h3>
+            <div class="bg-gray-100 p-6 rounded-xl mb-8">
+                <p class="text-gray-600 mb-4">
+                    Instrucciones para el Plan de Mejora. A partir de los resultados de tu evaluación, identifica de 3 a 4 áreas de oportunidad y describe acciones concretas que puedas implementar para mejorarlas. Indica el plazo estimado y cómo darás seguimiento a cada acción. Sé específico y realista para facilitar el cumplimiento y la evaluación de avances. Ingresa al siguiente enlace, redacta y establece tu plan de mejora antes del 11 de septiembre de 2025. 🗓️
+                </p>
+            </div>
+            <div class="flex justify-center">
+                <button onclick="window.open('https://www.ejemplo.com/plan-mejora', '_blank')" class="bg-blue-cnci hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200">
+                    Ir a Plan de Mejora 🚀
                 </button>
-            </div>
-
-            <!-- Navegación por pestañas -->
-            <div class="card p-4 rounded-t-2xl mt-8">
-                <div class="flex justify-between md:justify-center items-center">
-                    <button class="tab-button active p-3 mx-2 text-gray-500 hover:text-cnci-blue transition-colors" data-tab="summary">Resumen General 📊</button>
-                    <button class="tab-button p-3 mx-2 text-gray-500 hover:text-cnci-blue transition-colors" data-tab="trends">Tendencias 📈</button>
-                    <button class="tab-button p-3 mx-2 text-gray-500 hover:text-cnci-blue transition-colors" data-tab="badges">Insignias 🏅</button>
-                </div>
-            </div>
-
-            <!-- Contenido de las pestañas -->
-            <div class="card p-6 rounded-b-2xl mb-8">
-                <!-- Pestaña de Resumen General -->
-                <div id="summary" class="tab-content active">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                        <div class="bg-gray-100 p-4 rounded-xl">
-                            <h3 class="text-xl font-bold mb-2">Calificación General ⭐</h3>
-                            <div class="flex items-center">
-                                <span id="general-score" class="text-4xl font-extrabold text-cnci-blue mr-4">87%</span>
-                                <div class="w-full">
-                                    <div class="progress-bar-container">
-                                        <div id="general-score-bar" class="progress-bar bg-cnci-blue" style="width: 87%;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bg-gray-100 p-4 rounded-xl">
-                            <h3 class="text-xl font-bold mb-2">Meta de Llamadas 📞</h3>
-                            <div class="flex items-center">
-                                <span id="calls-goal" class="text-4xl font-extrabold text-cnci-orange mr-4">95%</span>
-                                <div class="w-full">
-                                    <div class="progress-bar-container">
-                                        <div id="calls-goal-bar" class="progress-bar bg-cnci-orange" style="width: 95%;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <h3 class="text-2xl font-bold text-cnci-blue mb-4">Criterios de Evaluación 🎯</h3>
-                    <div id="criteria-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <!-- Criterios se llenarán dinámicamente -->
-                    </div>
-                    
-                    <div class="mt-8">
-                        <h3 class="text-2xl font-bold text-cnci-blue mb-4">Comentarios Generales del Supervisor 💬</h3>
-                        <div class="comment-box p-4 rounded-r-xl">
-                            <p id="supervisor-comments" class="text-gray-700 italic">Aquí va un comentario general del supervisor.</p>
-                        </div>
-                    </div>
-
-                    <div class="mt-8 text-center">
-                        <button id="details-button" class="bg-cnci-blue text-white py-3 px-6 rounded-xl font-semibold shadow-lg hover:bg-opacity-90 transition-all duration-300 ease-in-out">
-                            Detalles de Evaluación 🔍
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Pestaña de Tendencias -->
-                <div id="trends" class="tab-content">
-                    <h3 class="text-2xl font-bold text-cnci-blue mb-4">Evolución de Desempeño 📊</h3>
-                    <div class="card p-4 rounded-xl mb-6">
-                        <div class="chart-container">
-                            <canvas id="performanceChart"></canvas>
-                        </div>
-                    </div>
-                    
-                    <h3 class="text-2xl font-bold text-cnci-blue mb-4">Comparativa de Desempeño 🔄</h3>
-                    <div id="comparison-container" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <!-- Comparativa de últimos 3 meses se llena dinámicamente -->
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                        <div>
-                            <h3 class="text-2xl font-bold text-cnci-orange mb-4">Métricas Destacadas ✨</h3>
-                            <div class="bg-gray-100 p-4 rounded-xl">
-                                <h4 class="text-xl font-semibold mb-2">La mayor mejora 🚀</h4>
-                                <p id="major-improvement" class="text-gray-700">Comentario sobre la mayor mejora.</p>
-                            </div>
-                            <div class="mt-4 p-4 rounded-xl bg-gray-100">
-                                <h4 class="text-xl font-semibold mb-2">Área Crítica ⚠️</h4>
-                                <p id="critical-area" class="text-gray-700">Comentario sobre el área crítica.</p>
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="text-2xl font-bold text-cnci-blue mb-4">Comentarios del Supervisor 💬</h3>
-                            <div class="comment-box p-4 rounded-r-xl">
-                                <p id="trends-supervisor-comments" class="text-gray-700 italic">Comentarios generales del supervisor sobre las tendencias.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pestaña de Insignias -->
-                <div id="badges" class="tab-content">
-                    <h3 class="text-2xl font-bold text-cnci-blue mb-4">Tus Insignias 🏆</h3>
-                    <div id="badges-container" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
-                        <!-- Insignias se llenarán dinámicamente -->
-                    </div>
-                    
-                    <h3 class="text-2xl font-bold text-cnci-orange mb-4">Próximas Insignias 🌟</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="card p-6 rounded-xl badge-card">
-                            <h4 class="text-xl font-bold text-cnci-blue mb-2">Fortalezas 💪</h4>
-                            <ul id="strengths-list" class="list-disc list-inside text-gray-700">
-                                <!-- Fortalezas se llenarán dinámicamente -->
-                            </ul>
-                        </div>
-                        <div class="card p-6 rounded-xl badge-card">
-                            <h4 class="text-xl font-bold text-cnci-blue mb-2">Áreas de Oportunidad 🧠</h4>
-                            <ul id="opportunities-list" class="list-disc list-inside text-gray-700">
-                                <!-- Oportunidades se llenarán dinámicamente -->
-                            </ul>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Datos simulados para cada asesor
-        const asesorData = {
-            "Asesor01": {
-                name: "Carlos Rodríguez",
-                status: "Desempeño Destacado ✨",
-                summary: {
-                    generalScore: 92,
-                    callsGoal: 95,
-                    criteria: {
-                        "Retención": { score: 95, comment: "Excelente seguimiento y retención de alumnos. ¡Gran trabajo!" },
-                        "Reincorporación": { score: 88, comment: "Buen desempeño, pero se puede mejorar el seguimiento a casos difíciles." },
-                        "Procesos": { score: 98, comment: "Dominio total de los procesos, sin errores." },
-                        "Llamada": { score: 95, comment: "Excelente calidad en las llamadas y manejo de objeciones." },
-                        "WhatsApp": { score: 90, comment: "Respuestas claras y rápidas. ¡Sigue así!" },
-                        "Correo electrónico": { score: 96, comment: "Excelente uso del lenguaje formal y resolutivo." },
-                        "Viva Engage": { score: 100, comment: "Participación activa y valiosa en la plataforma." },
-                        "Actividades administrativas": { score: 93, comment: "Precisión y puntualidad en la entrega de reportes." }
+        // Datos de ejemplo para los asesores
+        const data = {
+            'asesor01': {
+                name: 'Juan Pérez',
+                scores: {
+                    resumen: {
+                        general: 92,
+                        calls: 85,
+                        criteria: [
+                            { name: 'Retención', score: 95, comments: { supervisión: 'Buen trabajo en seguimiento.', calidad: 'Excelente manejo de casos.'} },
+                            { name: 'Reincorporación', score: 88, comments: { supervisión: 'Se necesita mejorar el seguimiento.', calidad: 'Área de oportunidad en el registro.'} },
+                            { name: 'Procesos', score: 98, comments: { supervisión: 'Uso correcto de la plataforma.', calidad: 'Flujo de trabajo muy eficiente.'} },
+                            { name: 'Llamada', score: 90, comments: { supervisión: 'Voz clara y empática.', calidad: 'Resolución de dudas en el primer contacto.'} },
+                            { name: 'WhatsApp', score: 95, comments: { supervisión: 'Respuestas rápidas.', calidad: 'Excelente redacción.'} },
+                            { name: 'Correo electrónico', score: 99, comments: { supervisión: 'Excelente seguimiento por correo.', calidad: 'Respuestas bien estructuradas.'} },
+                            { name: 'Viva Engage', score: 80, comments: { supervisión: 'Participación limitada.', calidad: 'Necesita participar más en la comunidad.'} },
+                            { name: 'Actividades administrativas', score: 92, comments: { supervisión: 'Cumplimiento en tiempo y forma.', calidad: 'Registros completos y claros.'} },
+                        ],
+                        generalComments: 'El desempeño de Juan fue excelente este mes, demostrando un gran compromiso y proactividad en todas las áreas. Se destaca su capacidad para resolver problemas complejos y su excelente comunicación con los estudiantes. ¡Sigue así! 🎉'
                     },
-                    supervisorComments: "Carlos ha demostrado un desempeño excepcional este mes, superando la mayoría de las metas. Su proactividad y atención al detalle son un ejemplo para el equipo. ¡Felicitaciones!",
-                    detailsUrl: "https://www.ejemplo.com/detalles_asesor01"
-                },
-                trends: {
-                    scores: {
-                        "Ene": 82, "Feb": 84, "Mar": 87, "Abr": 89, "May": 90, "Jun": 92
+                    tendencias: {
+                        history: [
+                            { month: 'Abril', score: 85, change: 2 },
+                            { month: 'Mayo', score: 88, change: 3 },
+                            { month: 'Junio', score: 87, change: -1 },
+                            { month: 'Julio', score: 90, change: 3 },
+                            { month: 'Agosto', score: 92, change: 2 }
+                        ],
+                        mayorMejora: {
+                            area: 'Retención',
+                            increment: 10,
+                            comment: '¡Excelente trabajo! Se nota tu esfuerzo por mejorar la retención de los estudiantes. Sigue aplicando las estrategias que has desarrollado. 👏'
+                        },
+                        areaCritica: {
+                            area: 'Llamadas',
+                            decrement: 5,
+                            comment: 'Es importante revisar los protocolos de llamada y enfocarse en la empatía. Podemos agendar una sesión de retroalimentación para analizar tus grabaciones. 📞'
+                        }
                     },
-                    comparison: {
-                        lastMonth: { month: "Mayo", score: 90, diff: 2 },
-                        twoMonthsAgo: { month: "Abril", score: 89, diff: 3 },
-                        threeMonthsAgo: { month: "Marzo", score: 87, diff: 5 }
-                    },
-                    majorImprovement: "Mejoró en un 5% el manejo de procesos. El uso de la guía de procedimientos fue clave para este logro.",
-                    criticalArea: "El tiempo de respuesta en correos electrónicos es un área de oportunidad. Se sugiere priorizar los correos de alta urgencia.",
-                    supervisorComments: "La evolución de Carlos es notable. Ha mantenido una tendencia ascendente, especialmente en los últimos tres meses. Es importante seguir trabajando en las áreas de oportunidad para mantener este nivel."
-                },
-                badges: {
-                    earned: [
-                        { name: "Maestro de Procesos", description: "Reconocimiento por mantener un excelente seguimiento de protocolos durante 3 meses consecutivos." },
-                        { name: "Precisión en Calidad", description: "Por la alta calidad en la atención al cliente." },
-                        { name: "Solucionador(a)", description: "Por resolver casos complejos con éxito y rapidez." }
-                    ],
-                    next: {
-                        strengths: ["Excelente seguimiento de protocolos de atención.", "Alta calidad en la comunicación con clientes.", "Buena capacidad para resolver casos complejos."],
-                        opportunities: ["Mejorar tiempos de respuesta en llamadas de alto volumen.", "Incrementar conocimiento de productos nuevos.", "Desarrollar técnicas de venta cruzada."]
+                    insignias: {
+                        earned: [
+                            { name: 'Maestro de Procesos 🏆', description: 'Reconocimiento por mantener un excelente seguimiento de protocolos durante 3 meses consecutivos.' },
+                            { name: 'Precisión en Calidad 🎯', description: 'Reconocimiento por obtener un 95% o más en la métrica de Calidad en al menos 2 módulos.' },
+                            { name: 'Solucionador(a) 💡', description: 'Reconocimiento por resolver exitosamente más de 10 casos complejos en el mes.' }
+                        ],
+                        proximas: {
+                            fortalezas: ['Excelente seguimiento de protocolos de atención.', 'Alta calidad en la comunicación con clientes.', 'Buena capacidad para resolver casos complejos.'],
+                            oportunidades: ['Mejorar tiempos de respuesta en llamadas de alto volumen.', 'Incrementar conocimiento de productos nuevos.', 'Desarrollar técnicas de venta cruzada.']
+                        }
                     }
                 }
             },
-            "Asesor02": {
-                name: "Maria López",
-                status: "En Progreso 📈",
-                summary: {
-                    generalScore: 85,
-                    callsGoal: 90,
-                    criteria: {
-                        "Retención": { score: 85, comment: "Desempeño sólido, pero con potencial de mejora." },
-                        "Reincorporación": { score: 78, comment: "Es necesario un plan de acción para mejorar los resultados." },
-                        "Procesos": { score: 90, comment: "Sigue los procesos de manera correcta." },
-                        "Llamada": { score: 88, comment: "Buena calidad en las llamadas, pero se pueden acortar tiempos." },
-                        "WhatsApp": { score: 85, comment: "Respuestas claras, pero se puede mejorar la velocidad." },
-                        "Correo electrónico": { score: 82, comment: "Necesita mejorar el seguimiento de correos." },
-                        "Viva Engage": { score: 95, comment: "Participación consistente y útil." },
-                        "Actividades administrativas": { score: 80, comment: "Hay que ser más meticuloso en la entrega de reportes." }
+            'asesor02': {
+                name: 'Ana García',
+                scores: {
+                    resumen: {
+                        general: 85,
+                        calls: 75,
+                        criteria: [
+                            { name: 'Retención', score: 85, comments: { supervisión: 'Buen desempeño.', calidad: 'Con oportunidades de mejora.'} },
+                            { name: 'Reincorporación', score: 80, comments: { supervisión: 'Necesita seguir los protocolos.', calidad: 'Mejorar el registro.'} },
+                            { name: 'Procesos', score: 90, comments: { supervisión: 'Manejo adecuado de herramientas.', calidad: 'Eficiente en tareas rutinarias.'} },
+                            { name: 'Llamada', score: 82, comments: { supervisión: 'A mejorar en el tono de voz.', calidad: 'Necesita más proactividad.'} },
+                            { name: 'WhatsApp', score: 88, comments: { supervisión: 'Responde de forma oportuna.', calidad: 'A mejorar en la estructura.'} },
+                            { name: 'Correo electrónico', score: 90, comments: { supervisión: 'Bien en los correos.', calidad: 'Falta un poco de formalidad.'} },
+                            { name: 'Viva Engage', score: 95, comments: { supervisión: 'Gran participación.', calidad: 'Aporta valor a la comunidad.'} },
+                            { name: 'Actividades administrativas', score: 85, comments: { supervisión: 'Entrega a tiempo.', calidad: 'Revisar la calidad de los reportes.'} },
+                        ],
+                        generalComments: 'Ana mostró un desempeño sólido este mes. Se destaca su participación en la comunidad de Viva Engage. Hay áreas de oportunidad en la calidad de las llamadas y el registro de procesos. Estamos seguros que lograrás mejorar. 💪'
                     },
-                    supervisorComments: "Maria está en el camino correcto. Su compromiso es evidente, pero debe enfocarse en las áreas que requieren mayor atención para alcanzar su máximo potencial. ¡Ánimo!",
-                    detailsUrl: "https://www.ejemplo.com/detalles_asesor02"
-                },
-                trends: {
-                    scores: {
-                        "Ene": 78, "Feb": 80, "Mar": 82, "Abr": 84, "May": 85, "Jun": 85
+                    tendencias: {
+                        history: [
+                            { month: 'Abril', score: 80, change: -1 },
+                            { month: 'Mayo', score: 81, change: 1 },
+                            { month: 'Junio', score: 83, change: 2 },
+                            { month: 'Julio', score: 82, change: -1 },
+                            { month: 'Agosto', score: 85, change: 3 }
+                        ],
+                        mayorMejora: {
+                            area: 'Viva Engage',
+                            increment: 5,
+                            comment: '¡Excelente! Tu participación en la comunidad es un ejemplo para los demás. ✨'
+                        },
+                        areaCritica: {
+                            area: 'Llamadas',
+                            decrement: 3,
+                            comment: 'Revisemos juntos las grabaciones de tus llamadas para identificar áreas de mejora en la comunicación. 🗣️'
+                        }
                     },
-                    comparison: {
-                        lastMonth: { month: "Mayo", score: 85, diff: 0 },
-                        twoMonthsAgo: { month: "Abril", score: 84, diff: 1 },
-                        threeMonthsAgo: { month: "Marzo", score: 82, diff: 3 }
-                    },
-                    majorImprovement: "Mejoró un 3% en la calidad de las llamadas, demostrando una escucha activa y empática.",
-                    criticalArea: "El seguimiento a reincorporaciones necesita una mejora considerable. Se sugiere un curso de acción para abordar este punto.",
-                    supervisorComments: "La curva de aprendizaje de Maria es positiva. Se mantiene estable y con un crecimiento constante. Se recomienda un enfoque en reincorporación para el próximo mes."
-                },
-                badges: {
-                    earned: [
-                        { name: "Proactivo(a)", description: "Por tomar la iniciativa en la solución de problemas." },
-                        { name: "Trabajo en Equipo", description: "Por la excelente colaboración con el resto del equipo." }
-                    ],
-                    next: {
-                        strengths: ["Compromiso y motivación.", "Habilidad para resolver problemas de manera creativa."],
-                        opportunities: ["Mejorar el seguimiento de alumnos reincorporados.", "Ser más detallista en los reportes administrativos."]
+                    insignias: {
+                        earned: [
+                            { name: 'Maestro de la Comunidad 🤝', description: 'Reconocimiento por tu participación activa y aportes de valor en Viva Engage.' },
+                            { name: 'Constancia y Dedicación 🥇', description: 'Reconocimiento por mantener un desempeño estable y con crecimiento en los últimos 3 meses.' }
+                        ],
+                        proximas: {
+                            fortalezas: ['Participación activa en Viva Engage.', 'Puntualidad en la entrega de actividades administrativas.', 'Buena atención por WhatsApp.'],
+                            oportunidades: ['Mejorar la calidad en las llamadas.', 'Seguimiento de procesos en la reincorporación de estudiantes.', 'Mejorar el registro de comentarios.']
+                        }
                     }
                 }
             },
-            // Se puede agregar más asesores siguiendo este formato
+            'asesor03': {
+                name: 'Carlos López',
+                scores: {
+                    resumen: {
+                        general: 78,
+                        calls: 60,
+                        criteria: [
+                            { name: 'Retención', score: 75, comments: { supervisión: 'Falta seguimiento.', calidad: 'Área de oportunidad en el contacto inicial.'} },
+                            { name: 'Reincorporación', score: 70, comments: { supervisión: 'Necesita apoyo con la documentación.', calidad: 'A mejorar en la comunicación.'} },
+                            { name: 'Procesos', score: 85, comments: { supervisión: 'Seguimiento de los procesos.', calidad: 'Cumple con los pasos.'} },
+                            { name: 'Llamada', score: 78, comments: { supervisión: 'A mejorar en la empatía.', calidad: 'Poca resolución en primer contacto.'} },
+                            { name: 'WhatsApp', score: 80, comments: { supervisión: 'Bien.', calidad: 'A mejorar en la rapidez.'} },
+                            { name: 'Correo electrónico', score: 82, comments: { supervisión: 'Regular, a mejorar.', calidad: 'Respuestas cortas.'} },
+                            { name: 'Viva Engage', score: 70, comments: { supervisión: 'No hay participación.', calidad: 'Necesita involucrarse más.'} },
+                            { name: 'Actividades administrativas', score: 88, comments: { supervisión: 'Entrega a tiempo.', calidad: 'Reportes completos.'} },
+                        ],
+                        generalComments: 'Carlos necesita un plan de mejora enfocado en la comunicación y el seguimiento a estudiantes. Su desempeño administrativo es bueno, pero requiere atención en el trato y la retención. Trabajaremos juntos para mejorar estos puntos.🤝'
+                    },
+                    tendencias: {
+                        history: [
+                            { month: 'Abril', score: 75, change: -2 },
+                            { month: 'Mayo', score: 77, change: 2 },
+                            { month: 'Junio', score: 76, change: -1 },
+                            { month: 'Julio', score: 79, change: 3 },
+                            { month: 'Agosto', score: 78, change: -1 }
+                        ],
+                        mayorMejora: {
+                            area: 'Actividades administrativas',
+                            increment: 5,
+                            comment: 'Buen trabajo en tus reportes administrativos. Esto nos ayuda a tener todo en orden. ✅'
+                        },
+                        areaCritica: {
+                            area: 'Retención',
+                            decrement: 4,
+                            comment: 'El seguimiento es crucial para la retención. Hagamos un plan de trabajo para mejorar en esta área. 💡'
+                        }
+                    },
+                    insignias: {
+                        earned: [],
+                        proximas: {
+                            fortalezas: ['Buen cumplimiento en actividades administrativas.', 'Correcto seguimiento de procesos básicos.'],
+                            oportunidades: ['Mejorar la empatía en las llamadas.', 'Aumentar la participación en Viva Engage.', 'Estructurar mejor las respuestas por correo.']
+                        }
+                    }
+                }
+            },
+            // Datos de ejemplo para los asesores del 04 al 18, usando el mismo formato
+            'asesor04': {
+                name: 'Luis Morales',
+                scores: {
+                    resumen: {
+                        general: 95,
+                        calls: 90,
+                        criteria: [
+                            { name: 'Retención', score: 98, comments: { supervisión: 'Excelente.', calidad: 'Excepcional.'} },
+                            { name: 'Reincorporación', score: 95, comments: { supervisión: 'Muy bien.', calidad: 'Muy bien.'} },
+                            { name: 'Procesos', score: 96, comments: { supervisión: 'Uso correcto de la plataforma.', calidad: 'Flujo de trabajo muy eficiente.'} },
+                            { name: 'Llamada', score: 97, comments: { supervisión: 'Voz clara y empática.', calidad: 'Resolución de dudas en el primer contacto.'} },
+                            { name: 'WhatsApp', score: 98, comments: { supervisión: 'Respuestas rápidas.', calidad: 'Excelente redacción.'} },
+                            { name: 'Correo electrónico', score: 99, comments: { supervisión: 'Excelente seguimiento por correo.', calidad: 'Respuestas bien estructuradas.'} },
+                            { name: 'Viva Engage', score: 90, comments: { supervisión: 'Participación limitada.', calidad: 'Necesita participar más en la comunidad.'} },
+                            { name: 'Actividades administrativas', score: 95, comments: { supervisión: 'Cumplimiento en tiempo y forma.', calidad: 'Registros completos y claros.'} },
+                        ],
+                        generalComments: 'Un desempeño sobresaliente. ¡Luis es un ejemplo para el equipo! 🌟'
+                    },
+                    tendencias: {
+                        history: [
+                            { month: 'Abril', score: 92, change: 1 },
+                            { month: 'Mayo', score: 93, change: 1 },
+                            { month: 'Junio', score: 94, change: 1 },
+                            { month: 'Julio', score: 95, change: 1 },
+                            { month: 'Agosto', score: 95, change: 0 }
+                        ],
+                        mayorMejora: {
+                            area: 'Retención',
+                            increment: 2,
+                            comment: 'Sigue así, tu trabajo en retención es vital. 🚀'
+                        },
+                        areaCritica: {
+                            area: 'Viva Engage',
+                            decrement: 0,
+                            comment: 'Ninguna crítica, ¡mantén este nivel! 🎉'
+                        }
+                    },
+                    insignias: {
+                        earned: [
+                            { name: 'Experto en Retención 👑', description: 'Líder indiscutible en retención de estudiantes por 3 módulos.' },
+                            { name: 'Asesor Estrella ⭐', description: 'Desempeño consistente y excepcional en todas las áreas del módulo.' }
+                        ],
+                        proximas: {
+                            fortalezas: ['Excelente comunicación con los estudiantes.', 'Liderazgo natural y proactividad.'],
+                            oportunidades: ['Mantener el nivel excepcionalmente alto.']
+                        }
+                    }
+                }
+            },
+            'asesor05': {
+                name: 'Sofía Ramos',
+                scores: {
+                    resumen: {
+                        general: 88,
+                        calls: 80,
+                        criteria: [
+                            { name: 'Retención', score: 85, comments: { supervisión: 'Necesita mejorar el seguimiento.', calidad: 'Con oportunidades de mejora.'} },
+                            { name: 'Reincorporación', score: 90, comments: { supervisión: 'Excelente.', calidad: 'Excelente.'} },
+                            { name: 'Procesos', score: 88, comments: { supervisión: 'Buen manejo de procesos.', calidad: 'Flujo de trabajo eficiente.'} },
+                            { name: 'Llamada', score: 87, comments: { supervisión: 'Tono de voz cordial.', calidad: 'Falta un poco de proactividad.'} },
+                            { name: 'WhatsApp', score: 89, comments: { supervisión: 'Respuesta oportuna.', calidad: 'Buena redacción.'} },
+                            { name: 'Correo electrónico', score: 90, comments: { supervisión: 'Buen seguimiento.', calidad: 'Respuestas bien estructuradas.'} },
+                            { name: 'Viva Engage', score: 85, comments: { supervisión: 'Participa de forma activa.', calidad: 'Aportes de valor.'} },
+                            { name: 'Actividades administrativas', score: 92, comments: { supervisión: 'Entrega a tiempo.', calidad: 'Registros completos.'} },
+                        ],
+                        generalComments: 'Desempeño sólido con oportunidades de mejora en la retención. ¡Sigue así, Sofía! 💡'
+                    },
+                    tendencias: {
+                        history: [
+                            { month: 'Abril', score: 85, change: 1 },
+                            { month: 'Mayo', score: 86, change: 1 },
+                            { month: 'Junio', score: 87, change: 1 },
+                            { month: 'Julio', score: 88, change: 1 },
+                            { month: 'Agosto', score: 88, change: 0 }
+                        ],
+                        mayorMejora: {
+                            area: 'Reincorporación',
+                            increment: 5,
+                            comment: 'Muy bien en este aspecto. ¡Excelente trabajo en reincorporación! 👏'
+                        },
+                        areaCritica: {
+                            area: 'Retención',
+                            decrement: 2,
+                            comment: 'Hay que prestar atención a la retención. Podemos trabajar juntas en un plan. 🤝'
+                        }
+                    },
+                    insignias: {
+                        earned: [
+                            { name: 'Maestra de la Reincorporación 🔄', description: 'Destacada en reincorporar estudiantes al programa académico.' }
+                        ],
+                        proximas: {
+                            fortalezas: ['Dominio de los procesos de reincorporación.', 'Excelente comunicación escrita.'],
+                            oportunidades: ['Mejorar la retención de los estudiantes.']
+                        }
+                    }
+                }
+            },
+            'asesor06': {
+                name: 'Pedro Sánchez',
+                scores: {
+                    resumen: {
+                        general: 91,
+                        calls: 88,
+                        criteria: [
+                            { name: 'Retención', score: 92, comments: { supervisión: 'Buen trabajo.', calidad: 'Buen manejo de casos.'} },
+                            { name: 'Reincorporación', score: 91, comments: { supervisión: 'Muy bien.', calidad: 'Muy bien.'} },
+                            { name: 'Procesos', score: 95, comments: { supervisión: 'Excelente seguimiento de protocolos.', calidad: 'Eficiencia en el flujo de trabajo.'} },
+                            { name: 'Llamada', score: 90, comments: { supervisión: 'Voz clara y cordial.', calidad: 'Resolución efectiva de problemas.'} },
+                            { name: 'WhatsApp', score: 93, comments: { supervisión: 'Respuestas rápidas y amables.', calidad: 'Redacción impecable.'} },
+                            { name: 'Correo electrónico', score: 91, comments: { supervisión: 'Excelente seguimiento.', calidad: 'Respuestas detalladas y claras.'} },
+                            { name: 'Viva Engage', score: 80, comments: { supervisión: 'A mejorar la participación.', calidad: 'Falta de involucramiento.'} },
+                            { name: 'Actividades administrativas', score: 94, comments: { supervisión: 'Entrega a tiempo.', calidad: 'Registros completos y precisos.'} },
+                        ],
+                        generalComments: 'Desempeño sólido y constante. ¡Gran gestión de procesos, Pedro! 👏'
+                    },
+                    tendencias: {
+                        history: [
+                            { month: 'Abril', score: 89, change: 1 },
+                            { month: 'Mayo', score: 90, change: 1 },
+                            { month: 'Junio', score: 91, change: 1 },
+                            { month: 'Julio', score: 91, change: 0 },
+                            { month: 'Agosto', score: 91, change: 0 }
+                        ],
+                        mayorMejora: {
+                            area: 'Procesos',
+                            increment: 3,
+                            comment: '¡Muy bien! Tu manejo de procesos es ejemplar. ✅'
+                        },
+                        areaCritica: {
+                            area: 'Viva Engage',
+                            decrement: 1,
+                            comment: 'Aumentar la participación en la comunidad de Viva Engage podría potenciar tu desempeño. 📈'
+                        }
+                    },
+                    insignias: {
+                        earned: [
+                            { name: 'Maestro de Procesos 🏆', description: 'Reconocimiento por la excelencia en la gestión de protocolos.' }
+                        ],
+                        proximas: {
+                            fortalezas: ['Excelente gestión de procesos.', 'Buena comunicación en general.'],
+                            oportunidades: ['Aumentar la participación en la comunidad.']
+                        }
+                    }
+                }
+            },
+            'asesor07': {
+                name: 'Laura Torres',
+                scores: {
+                    resumen: {
+                        general: 89,
+                        calls: 82,
+                        criteria: [
+                            { name: 'Retención', score: 90, comments: { supervisión: 'Buen trabajo en seguimiento.', calidad: 'Bien.'} },
+                            { name: 'Reincorporación', score: 85, comments: { supervisión: 'Necesita mejorar el seguimiento.', calidad: 'A mejorar.'} },
+                            { name: 'Procesos', score: 92, comments: { supervisión: 'Uso correcto de la plataforma.', calidad: 'Flujo de trabajo eficiente.'} },
+                            { name: 'Llamada', score: 88, comments: { supervisión: 'Voz clara y empática.', calidad: 'Resolución de dudas en el primer contacto.'} },
+                            { name: 'WhatsApp', score: 91, comments: { supervisión: 'Respuestas rápidas.', calidad: 'Excelente redacción.'} },
+                            { name: 'Correo electrónico', score: 90, comments: { supervisión: 'Excelente seguimiento por correo.', calidad: 'Respuestas bien estructuradas.'} },
+                            { name: 'Viva Engage', score: 85, comments: { supervisión: 'Participación limitada.', calidad: 'Necesita participar más en la comunidad.'} },
+                            { name: 'Actividades administrativas', score: 93, comments: { supervisión: 'Cumplimiento en tiempo y forma.', calidad: 'Registros completos y claros.'} },
+                        ],
+                        generalComments: 'Desempeño estable con áreas de oportunidad en la reincorporación. ¡Laura, vamos a trabajar en ello! 💪'
+                    },
+                    tendencias: {
+                        history: [
+                            { month: 'Abril', score: 87, change: 1 },
+                            { month: 'Mayo', score: 88, change: 1 },
+                            { month: 'Junio', score: 89, change: 1 },
+                            { month: 'Julio', score: 89, change: 0 },
+                            { month: 'Agosto', score: 89, change: 0 }
+                        ],
+                        mayorMejora: {
+                            area: 'Retención',
+                            increment: 2,
+                            comment: 'Buen trabajo. Tu seguimiento es clave para el éxito de los estudiantes. 🌟'
+                        },
+                        areaCritica: {
+                            area: 'Reincorporación',
+                            decrement: 3,
+                            comment: 'Mejorar los procesos de reincorporación será nuestro enfoque. 📈'
+                        }
+                    },
+                    insignias: {
+                        earned: [],
+                        proximas: {
+                            fortalezas: ['Buen seguimiento de estudiantes.', 'Procesos bien manejados.'],
+                            oportunidades: ['Mejorar los procesos de reincorporación.', 'Aumentar la participación en la comunidad.']
+                        }
+                    }
+                }
+            },
+            'asesor08': {
+                name: 'Daniel Castro',
+                scores: {
+                    resumen: {
+                        general: 94,
+                        calls: 95,
+                        criteria: [
+                            { name: 'Retención', score: 95, comments: { supervisión: 'Excelente.', calidad: 'Excepcional.'} },
+                            { name: 'Reincorporación', score: 98, comments: { supervisión: 'Excelente.', calidad: 'Excepcional.'} },
+                            { name: 'Procesos', score: 97, comments: { supervisión: 'Uso correcto de la plataforma.', calidad: 'Flujo de trabajo muy eficiente.'} },
+                            { name: 'Llamada', score: 96, comments: { supervisión: 'Voz clara y empática.', calidad: 'Resolución de dudas en el primer contacto.'} },
+                            { name: 'WhatsApp', score: 99, comments: { supervisión: 'Respuestas rápidas.', calidad: 'Excelente redacción.'} },
+                            { name: 'Correo electrónico', score: 98, comments: { supervisión: 'Excelente seguimiento por correo.', calidad: 'Respuestas bien estructuradas.'} },
+                            { name: 'Viva Engage', score: 95, comments: { supervisión: 'Gran participación.', calidad: 'Aporta valor a la comunidad.'} },
+                            { name: 'Actividades administrativas', score: 96, comments: { supervisión: 'Cumplimiento en tiempo y forma.', calidad: 'Registros completos y claros.'} },
+                        ],
+                        generalComments: 'Desempeño sobresaliente. ¡Eres un líder, Daniel! 👑'
+                    },
+                    tendencias: {
+                        history: [
+                            { month: 'Abril', score: 93, change: 1 },
+                            { month: 'Mayo', score: 94, change: 1 },
+                            { month: 'Junio', score: 94, change: 0 },
+                            { month: 'Julio', score: 94, change: 0 },
+                            { month: 'Agosto', score: 94, change: 0 }
+                        ],
+                        mayorMejora: {
+                            area: 'Llamada',
+                            increment: 2,
+                            comment: 'Fantástico. Tu comunicación telefónica es excepcional. 📞'
+                        },
+                        areaCritica: {
+                            area: 'WhatsApp',
+                            decrement: 1,
+                            comment: 'Atención a la rapidez en las respuestas. Aún hay margen de mejora. 🚀'
+                        }
+                    },
+                    insignias: {
+                        earned: [
+                            { name: 'Asesor del Mes 🏆', description: 'Reconocimiento al mejor desempeño del mes en todas las áreas.' },
+                            { name: 'Líder Proactivo ✨', description: 'Reconocimiento por tu constante iniciativa y proactividad.' }
+                        ],
+                        proximas: {
+                            fortalezas: ['Liderazgo y proactividad.', 'Excelencia en todas las métricas.'],
+                            oportunidades: ['Mantener el nivel, es un desafío constante.']
+                        }
+                    }
+                }
+            },
+            'asesor09': {
+                name: 'Marta Ríos',
+                scores: {
+                    resumen: {
+                        general: 87,
+                        calls: 80,
+                        criteria: [
+                            { name: 'Retención', score: 88, comments: { supervisión: 'Bien.', calidad: 'Bien.'} },
+                            { name: 'Reincorporación', score: 85, comments: { supervisión: 'A mejorar el seguimiento.', calidad: 'A mejorar.'} },
+                            { name: 'Procesos', score: 90, comments: { supervisión: 'Buen manejo de procesos.', calidad: 'Eficiencia en el flujo de trabajo.'} },
+                            { name: 'Llamada', score: 87, comments: { supervisión: 'Tono de voz cordial.', calidad: 'Buena resolución.'} },
+                            { name: 'WhatsApp', score: 91, comments: { supervisión: 'Respuesta oportuna.', calidad: 'Buena redacción.'} },
+                            { name: 'Correo electrónico', score: 92, comments: { supervisión: 'Excelente seguimiento.', calidad: 'Respuestas detalladas y claras.'} },
+                            { name: 'Viva Engage', score: 80, comments: { supervisión: 'Participación limitada.', calidad: 'Necesita participar más en la comunidad.'} },
+                            { name: 'Actividades administrativas', score: 90, comments: { supervisión: 'Entrega a tiempo.', calidad: 'Registros completos y precisos.'} },
+                        ],
+                        generalComments: 'Desempeño consistente. ¡Vamos a potenciar la reincorporación, Marta! 📈'
+                    },
+                    tendencias: {
+                        history: [
+                            { month: 'Abril', score: 86, change: 1 },
+                            { month: 'Mayo', score: 87, change: 1 },
+                            { month: 'Junio', score: 87, change: 0 },
+                            { month: 'Julio', score: 87, change: 0 },
+                            { month: 'Agosto', score: 87, change: 0 }
+                        ],
+                        mayorMejora: {
+                            area: 'Correo electrónico',
+                            increment: 3,
+                            comment: '¡Muy bien! Tu comunicación por correo es excelente. 📧'
+                        },
+                        areaCritica: {
+                            area: 'Reincorporación',
+                            decrement: 2,
+                            comment: 'Mejorar el seguimiento en reincorporación es clave. 🔑'
+                        }
+                    },
+                    insignias: {
+                        earned: [],
+                        proximas: {
+                            fortalezas: ['Excelente comunicación por correo.', 'Manejo adecuado de procesos.'],
+                            oportunidades: ['Mejorar la reincorporación de estudiantes.']
+                        }
+                    }
+                }
+            },
+            'asesor10': {
+                name: 'Ricardo Vidal',
+                scores: {
+                    resumen: {
+                        general: 90,
+                        calls: 85,
+                        criteria: [
+                            { name: 'Retención', score: 92, comments: { supervisión: 'Buen trabajo.', calidad: 'Buen trabajo.'} },
+                            { name: 'Reincorporación', score: 90, comments: { supervisión: 'Muy bien.', calidad: 'Muy bien.'} },
+                            { name: 'Procesos', score: 93, comments: { supervisión: 'Excelente seguimiento de protocolos.', calidad: 'Eficiencia en el flujo de trabajo.'} },
+                            { name: 'Llamada', score: 91, comments: { supervisión: 'Voz clara y cordial.', calidad: 'Resolución efectiva de problemas.'} },
+                            { name: 'WhatsApp', score: 92, comments: { supervisión: 'Respuestas rápidas y amables.', calidad: 'Redacción impecable.'} },
+                            { name: 'Correo electrónico', score: 90, comments: { supervisión: 'Excelente seguimiento.', calidad: 'Respuestas detalladas y claras.'} },
+                            { name: 'Viva Engage', score: 80, comments: { supervisión: 'A mejorar la participación.', calidad: 'Falta de involucramiento.'} },
+                            { name: 'Actividades administrativas', score: 94, comments: { supervisión: 'Entrega a tiempo.', calidad: 'Registros completos y precisos.'} },
+                        ],
+                        generalComments: 'Un desempeño muy bueno. La proactividad de Ricardo es notable. 🚀'
+                    },
+                    tendencias: {
+                        history: [
+                            { month: 'Abril', score: 88, change: 1 },
+                            { month: 'Mayo', score: 89, change: 1 },
+                            { month: 'Junio', score: 90, change: 1 },
+                            { month: 'Julio', score: 90, change: 0 },
+                            { month: 'Agosto', score: 90, change: 0 }
+                        ],
+                        mayorMejora: {
+                            area: 'Llamada',
+                            increment: 2,
+                            comment: 'Sigue así, tu habilidad en llamadas es un punto fuerte. 📞'
+                        },
+                        areaCritica: {
+                            area: 'Viva Engage',
+                            decrement: 1,
+                            comment: 'Participar más en la comunidad podría llevarte al siguiente nivel. 📈'
+                        }
+                    },
+                    insignias: {
+                        earned: [
+                            { name: 'Proactivo 🌱', description: 'Siempre un paso adelante en la resolución de problemas.' }
+                        ],
+                        proximas: {
+                            fortalezas: ['Proactividad en la resolución de problemas.', 'Buena comunicación en general.'],
+                            oportunidades: ['Mayor participación en la comunidad.']
+                        }
+                    }
+                }
+            },
+            'asesor11': {
+                name: 'Elena Méndez',
+                scores: {
+                    resumen: {
+                        general: 84,
+                        calls: 78,
+                        criteria: [
+                            { name: 'Retención', score: 85, comments: { supervisión: 'Buen trabajo.', calidad: 'Buen manejo de casos.'} },
+                            { name: 'Reincorporación', score: 80, comments: { supervisión: 'A mejorar el seguimiento.', calidad: 'A mejorar.'} },
+                            { name: 'Procesos', score: 88, comments: { supervisión: 'Buen manejo de procesos.', calidad: 'Eficiencia en el flujo de trabajo.'} },
+                            { name: 'Llamada', score: 85, comments: { supervisión: 'Tono de voz cordial.', calidad: 'Buena resolución.'} },
+                            { name: 'WhatsApp', score: 89, comments: { supervisión: 'Respuesta oportuna.', calidad: 'Buena redacción.'} },
+                            { name: 'Correo electrónico', score: 88, comments: { supervisión: 'Buen seguimiento.', calidad: 'Respuestas detalladas y claras.'} },
+                            { name: 'Viva Engage', score: 82, comments: { supervisión: 'Participación limitada.', calidad: 'Necesita participar más en la comunidad.'} },
+                            { name: 'Actividades administrativas', score: 90, comments: { supervisión: 'Entrega a tiempo.', calidad: 'Registros completos y precisos.'} },
+                        ],
+                        generalComments: 'Desempeño aceptable con oportunidades en reincorporación. ¡Vamos a trabajar en un plan de mejora! 💡'
+                    },
+                    tendencias: {
+                        history: [
+                            { month: 'Abril', score: 83, change: 1 },
+                            { month: 'Mayo', score: 84, change: 1 },
+                            { month: 'Junio', score: 84, change: 0 },
+                            { month: 'Julio', score: 84, change: 0 },
+                            { month: 'Agosto', score: 84, change: 0 }
+                        ],
+                        mayorMejora: {
+                            area: 'WhatsApp',
+                            increment: 2,
+                            comment: 'Buen trabajo. Tu rapidez en WhatsApp es destacable. 💬'
+                        },
+                        areaCritica: {
+                            area: 'Reincorporación',
+                            decrement: 3,
+                            comment: 'Mejorar la reincorporación de estudiantes es el principal objetivo del mes. 🎯'
+                        }
+                    },
+                    insignias: {
+                        earned: [],
+                        proximas: {
+                            fortalezas: ['Rapidez en WhatsApp.', 'Buena gestión de procesos.'],
+                            oportunidades: ['Mejorar la reincorporación de estudiantes.', 'Aumentar la participación en la comunidad.']
+                        }
+                    }
+                }
+            },
+            'asesor12': {
+                name: 'Fabián Ortiz',
+                scores: {
+                    resumen: {
+                        general: 93,
+                        calls: 90,
+                        criteria: [
+                            { name: 'Retención', score: 94, comments: { supervisión: 'Excelente.', calidad: 'Excepcional.'} },
+                            { name: 'Reincorporación', score: 92, comments: { supervisión: 'Muy bien.', calidad: 'Muy bien.'} },
+                            { name: 'Procesos', score: 95, comments: { supervisión: 'Uso correcto de la plataforma.', calidad: 'Flujo de trabajo muy eficiente.'} },
+                            { name: 'Llamada', score: 96, comments: { supervisión: 'Voz clara y empática.', calidad: 'Resolución de dudas en el primer contacto.'} },
+                            { name: 'WhatsApp', score: 98, comments: { supervisión: 'Respuestas rápidas.', calidad: 'Excelente redacción.'} },
+                            { name: 'Correo electrónico', score: 95, comments: { supervisión: 'Excelente seguimiento por correo.', calidad: 'Respuestas bien estructuradas.'} },
+                            { name: 'Viva Engage', score: 90, comments: { supervisión: 'Gran participación.', calidad: 'Aporta valor a la comunidad.'} },
+                            { name: 'Actividades administrativas', score: 96, comments: { supervisión: 'Cumplimiento en tiempo y forma.', calidad: 'Registros completos y claros.'} },
+                        ],
+                        generalComments: 'Desempeño sobresaliente. ¡Un líder nato! 🌟'
+                    },
+                    tendencias: {
+                        history: [
+                            { month: 'Abril', score: 91, change: 1 },
+                            { month: 'Mayo', score: 92, change: 1 },
+                            { month: 'Junio', score: 93, change: 1 },
+                            { month: 'Julio', score: 93, change: 0 },
+                            { month: 'Agosto', score: 93, change: 0 }
+                        ],
+                        mayorMejora: {
+                            area: 'Llamada',
+                            increment: 3,
+                            comment: '¡Excelente! Tu habilidad en llamadas es un activo para el equipo. 📞'
+                        },
+                        areaCritica: {
+                            area: 'Viva Engage',
+                            decrement: 0,
+                            comment: 'Todo está perfecto, ¡sigue así! 🎉'
+                        }
+                    },
+                    insignias: {
+                        earned: [
+                            { name: 'Maestro de la Reincorporación 🔄', description: 'Destacado en reincorporar estudiantes al programa académico.' },
+                            { name: 'Asesor Estrella ⭐', description: 'Desempeño consistente y excepcional en todas las áreas del módulo.' }
+                        ],
+                        proximas: {
+                            fortalezas: ['Liderazgo y proactividad.', 'Excelencia en todas las métricas.'],
+                            oportunidades: ['Mantener el nivel.']
+                        }
+                    }
+                }
+            },
+            'asesor13': {
+                name: 'Gabriela Soto',
+                scores: {
+                    resumen: {
+                        general: 86,
+                        calls: 80,
+                        criteria: [
+                            { name: 'Retención', score: 88, comments: { supervisión: 'Bien.', calidad: 'Bien.'} },
+                            { name: 'Reincorporación', score: 85, comments: { supervisión: 'A mejorar el seguimiento.', calidad: 'A mejorar.'} },
+                            { name: 'Procesos', score: 89, comments: { supervisión: 'Buen manejo de procesos.', calidad: 'Eficiencia en el flujo de trabajo.'} },
+                            { name: 'Llamada', score: 87, comments: { supervisión: 'Tono de voz cordial.', calidad: 'Buena resolución.'} },
+                            { name: 'WhatsApp', score: 91, comments: { supervisión: 'Respuesta oportuna.', calidad: 'Buena redacción.'} },
+                            { name: 'Correo electrónico', score: 90, comments: { supervisión: 'Excelente seguimiento.', calidad: 'Respuestas detalladas y claras.'} },
+                            { name: 'Viva Engage', score: 85, comments: { supervisión: 'Participación limitada.', calidad: 'Necesita participar más en la comunidad.'} },
+                            { name: 'Actividades administrativas', score: 90, comments: { supervisión: 'Entrega a tiempo.', calidad: 'Registros completos y precisos.'} },
+                        ],
+                        generalComments: 'Desempeño consistente con oportunidades en reincorporación. ¡Vamos a trabajar en ello, Gabriela! 📈'
+                    },
+                    tendencias: {
+                        history: [
+                            { month: 'Abril', score: 84, change: 1 },
+                            { month: 'Mayo', score: 85, change: 1 },
+                            { month: 'Junio', score: 86, change: 1 },
+                            { month: 'Julio', score: 86, change: 0 },
+                            { month: 'Agosto', score: 86, change: 0 }
+                        ],
+                        mayorMejora: {
+                            area: 'WhatsApp',
+                            increment: 2,
+                            comment: '¡Muy bien! Tu rapidez en WhatsApp es destacable. 💬'
+                        },
+                        areaCritica: {
+                            area: 'Reincorporación',
+                            decrement: 2,
+                            comment: 'Mejorar el seguimiento en reincorporación es clave. 🔑'
+                        }
+                    },
+                    insignias: {
+                        earned: [],
+                        proximas: {
+                            fortalezas: ['Excelente comunicación.', 'Manejo adecuado de procesos.'],
+                            oportunidades: ['Mejorar la reincorporación de estudiantes.']
+                        }
+                    }
+                }
+            },
+            'asesor14': {
+                name: 'Hugo Ramos',
+                scores: {
+                    resumen: {
+                        general: 91,
+                        calls: 88,
+                        criteria: [
+                            { name: 'Retención', score: 92, comments: { supervisión: 'Buen trabajo.', calidad: 'Buen manejo de casos.'} },
+                            { name: 'Reincorporación', score: 90, comments: { supervisión: 'Muy bien.', calidad: 'Muy bien.'} },
+                            { name: 'Procesos', score: 95, comments: { supervisión: 'Excelente seguimiento de protocolos.', calidad: 'Eficiencia en el flujo de trabajo.'} },
+                            { name: 'Llamada', score: 90, comments: { supervisión: 'Voz clara y cordial.', calidad: 'Resolución efectiva de problemas.'} },
+                            { name: 'WhatsApp', score: 93, comments: { supervisión: 'Respuestas rápidas y amables.', calidad: 'Redacción impecable.'} },
+                            { name: 'Correo electrónico', score: 91, comments: { supervisión: 'Excelente seguimiento.', calidad: 'Respuestas detalladas y claras.'} },
+                            { name: 'Viva Engage', score: 80, comments: { supervisión: 'A mejorar la participación.', calidad: 'Falta de involucramiento.'} },
+                            { name: 'Actividades administrativas', score: 94, comments: { supervisión: 'Entrega a tiempo.', calidad: 'Registros completos y precisos.'} },
+                        ],
+                        generalComments: 'Desempeño muy bueno. La proactividad de Hugo es notable. 🚀'
+                    },
+                    tendencias: {
+                        history: [
+                            { month: 'Abril', score: 89, change: 1 },
+                            { month: 'Mayo', score: 90, change: 1 },
+                            { month: 'Junio', score: 91, change: 1 },
+                            { month: 'Julio', score: 91, change: 0 },
+                            { month: 'Agosto', score: 91, change: 0 }
+                        ],
+                        mayorMejora: {
+                            area: 'Procesos',
+                            increment: 3,
+                            comment: '¡Muy bien! Tu manejo de procesos es ejemplar. ✅'
+                        },
+                        areaCritica: {
+                            area: 'Viva Engage',
+                            decrement: 1,
+                            comment: 'Participar más en la comunidad podría llevarte al siguiente nivel. 📈'
+                        }
+                    },
+                    insignias: {
+                        earned: [
+                            { name: 'Proactivo 🌱', description: 'Siempre un paso adelante en la resolución de problemas.' }
+                        ],
+                        proximas: {
+                            fortalezas: ['Proactividad en la resolución de problemas.', 'Buena comunicación en general.'],
+                            oportunidades: ['Mayor participación en la comunidad.']
+                        }
+                    }
+                }
+            },
+            'asesor15': {
+                name: 'Irene Salazar',
+                scores: {
+                    resumen: {
+                        general: 89,
+                        calls: 82,
+                        criteria: [
+                            { name: 'Retención', score: 90, comments: { supervisión: 'Buen trabajo en seguimiento.', calidad: 'Bien.'} },
+                            { name: 'Reincorporación', score: 85, comments: { supervisión: 'Necesita mejorar el seguimiento.', calidad: 'A mejorar.'} },
+                            { name: 'Procesos', score: 92, comments: { supervisión: 'Uso correcto de la plataforma.', calidad: 'Flujo de trabajo eficiente.'} },
+                            { name: 'Llamada', score: 88, comments: { supervisión: 'Voz clara y empática.', calidad: 'Resolución de dudas en el primer contacto.'} },
+                            { name: 'WhatsApp', score: 91, comments: { supervisión: 'Respuestas rápidas.', calidad: 'Excelente redacción.'} },
+                            { name: 'Correo electrónico', score: 90, comments: { supervisión: 'Excelente seguimiento por correo.', calidad: 'Respuestas bien estructuradas.'} },
+                            { name: 'Viva Engage', score: 85, comments: { supervisión: 'Participación limitada.', calidad: 'Necesita participar más en la comunidad.'} },
+                            { name: 'Actividades administrativas', score: 93, comments: { supervisión: 'Cumplimiento en tiempo y forma.', calidad: 'Registros completos y claros.'} },
+                        ],
+                        generalComments: 'Desempeño estable con áreas de oportunidad en la reincorporación. ¡Irene, vamos a trabajar en ello! 💪'
+                    },
+                    tendencias: {
+                        history: [
+                            { month: 'Abril', score: 87, change: 1 },
+                            { month: 'Mayo', score: 88, change: 1 },
+                            { month: 'Junio', score: 89, change: 1 },
+                            { month: 'Julio', score: 89, change: 0 },
+                            { month: 'Agosto', score: 89, change: 0 }
+                        ],
+                        mayorMejora: {
+                            area: 'Retención',
+                            increment: 2,
+                            comment: 'Buen trabajo. Tu seguimiento es clave para el éxito de los estudiantes. 🌟'
+                        },
+                        areaCritica: {
+                            area: 'Reincorporación',
+                            decrement: 3,
+                            comment: 'Mejorar los procesos de reincorporación será nuestro enfoque. 📈'
+                        }
+                    },
+                    insignias: {
+                        earned: [],
+                        proximas: {
+                            fortalezas: ['Buen seguimiento de estudiantes.', 'Procesos bien manejados.'],
+                            oportunidades: ['Mejorar los procesos de reincorporación.', 'Aumentar la participación en la comunidad.']
+                        }
+                    }
+                }
+            },
+            'asesor16': {
+                name: 'Jorge Navarro',
+                scores: {
+                    resumen: {
+                        general: 94,
+                        calls: 95,
+                        criteria: [
+                            { name: 'Retención', score: 95, comments: { supervisión: 'Excelente.', calidad: 'Excepcional.'} },
+                            { name: 'Reincorporación', score: 98, comments: { supervisión: 'Excelente.', calidad: 'Excepcional.'} },
+                            { name: 'Procesos', score: 97, comments: { supervisión: 'Uso correcto de la plataforma.', calidad: 'Flujo de trabajo muy eficiente.'} },
+                            { name: 'Llamada', score: 96, comments: { supervisión: 'Voz clara y empática.', calidad: 'Resolución de dudas en el primer contacto.'} },
+                            { name: 'WhatsApp', score: 99, comments: { supervisión: 'Respuestas rápidas.', calidad: 'Excelente redacción.'} },
+                            { name: 'Correo electrónico', score: 98, comments: { supervisión: 'Excelente seguimiento por correo.', calidad: 'Respuestas bien estructuradas.'} },
+                            { name: 'Viva Engage', score: 95, comments: { supervisión: 'Gran participación.', calidad: 'Aporta valor a la comunidad.'} },
+                            { name: 'Actividades administrativas', score: 96, comments: { supervisión: 'Cumplimiento en tiempo y forma.', calidad: 'Registros completos y claros.'} },
+                        ],
+                        generalComments: 'Desempeño sobresaliente. ¡Eres un líder, Jorge! 👑'
+                    },
+                    tendencias: {
+                        history: [
+                            { month: 'Abril', score: 93, change: 1 },
+                            { month: 'Mayo', score: 94, change: 1 },
+                            { month: 'Junio', score: 94, change: 0 },
+                            { month: 'Julio', score: 94, change: 0 },
+                            { month: 'Agosto', score: 94, change: 0 }
+                        ],
+                        mayorMejora: {
+                            area: 'Llamada',
+                            increment: 2,
+                            comment: 'Fantástico. Tu comunicación telefónica es excepcional. 📞'
+                        },
+                        areaCritica: {
+                            area: 'WhatsApp',
+                            decrement: 1,
+                            comment: 'Atención a la rapidez en las respuestas. Aún hay margen de mejora. 🚀'
+                        }
+                    },
+                    insignias: {
+                        earned: [
+                            { name: 'Asesor del Mes 🏆', description: 'Reconocimiento al mejor desempeño del mes en todas las áreas.' },
+                            { name: 'Líder Proactivo ✨', description: 'Reconocimiento por tu constante iniciativa y proactividad.' }
+                        ],
+                        proximas: {
+                            fortalezas: ['Liderazgo y proactividad.', 'Excelencia en todas las métricas.'],
+                            oportunidades: ['Mantener el nivel, es un desafío constante.']
+                        }
+                    }
+                }
+            },
+            'asesor17': {
+                name: 'Karla Luna',
+                scores: {
+                    resumen: {
+                        general: 87,
+                        calls: 80,
+                        criteria: [
+                            { name: 'Retención', score: 88, comments: { supervisión: 'Bien.', calidad: 'Bien.'} },
+                            { name: 'Reincorporación', score: 85, comments: { supervisión: 'A mejorar el seguimiento.', calidad: 'A mejorar.'} },
+                            { name: 'Procesos', score: 90, comments: { supervisión: 'Buen manejo de procesos.', calidad: 'Eficiencia en el flujo de trabajo.'} },
+                            { name: 'Llamada', score: 87, comments: { supervisión: 'Tono de voz cordial.', calidad: 'Buena resolución.'} },
+                            { name: 'WhatsApp', score: 91, comments: { supervisión: 'Respuesta oportuna.', calidad: 'Buena redacción.'} },
+                            { name: 'Correo electrónico', score: 92, comments: { supervisión: 'Excelente seguimiento.', calidad: 'Respuestas detalladas y claras.'} },
+                            { name: 'Viva Engage', score: 80, comments: { supervisión: 'Participación limitada.', calidad: 'Necesita participar más en la comunidad.'} },
+                            { name: 'Actividades administrativas', score: 90, comments: { supervisión: 'Entrega a tiempo.', calidad: 'Registros completos y precisos.'} },
+                        ],
+                        generalComments: 'Desempeño consistente con oportunidades en reincorporación. ¡Vamos a potenciar la reincorporación, Karla! 📈'
+                    },
+                    tendencias: {
+                        history: [
+                            { month: 'Abril', score: 86, change: 1 },
+                            { month: 'Mayo', score: 87, change: 1 },
+                            { month: 'Junio', score: 87, change: 0 },
+                            { month: 'Julio', score: 87, change: 0 },
+                            { month: 'Agosto', score: 87, change: 0 }
+                        ],
+                        mayorMejora: {
+                            area: 'Correo electrónico',
+                            increment: 3,
+                            comment: '¡Muy bien! Tu comunicación por correo es excelente. 📧'
+                        },
+                        areaCritica: {
+                            area: 'Reincorporación',
+                            decrement: 2,
+                            comment: 'Mejorar el seguimiento en reincorporación es clave. 🔑'
+                        }
+                    },
+                    insignias: {
+                        earned: [],
+                        proximas: {
+                            fortalezas: ['Excelente comunicación por correo.', 'Manejo adecuado de procesos.'],
+                            oportunidades: ['Mejorar la reincorporación de estudiantes.']
+                        }
+                    }
+                }
+            },
+            'asesor18': {
+                name: 'Manuel Robles',
+                scores: {
+                    resumen: {
+                        general: 90,
+                        calls: 85,
+                        criteria: [
+                            { name: 'Retención', score: 92, comments: { supervisión: 'Buen trabajo.', calidad: 'Buen trabajo.'} },
+                            { name: 'Reincorporación', score: 90, comments: { supervisión: 'Muy bien.', calidad: 'Muy bien.'} },
+                            { name: 'Procesos', score: 93, comments: { supervisión: 'Excelente seguimiento de protocolos.', calidad: 'Eficiencia en el flujo de trabajo.'} },
+                            { name: 'Llamada', score: 91, comments: { supervisión: 'Voz clara y cordial.', calidad: 'Resolución efectiva de problemas.'} },
+                            { name: 'WhatsApp', score: 92, comments: { supervisión: 'Respuestas rápidas y amables.', calidad: 'Redacción impecable.'} },
+                            { name: 'Correo electrónico', score: 90, comments: { supervisión: 'Excelente seguimiento.', calidad: 'Respuestas detalladas y claras.'} },
+                            { name: 'Viva Engage', score: 80, comments: { supervisión: 'A mejorar la participación.', calidad: 'Falta de involucramiento.'} },
+                            { name: 'Actividades administrativas', score: 94, comments: { supervisión: 'Entrega a tiempo.', calidad: 'Registros completos y precisos.'} },
+                        ],
+                        generalComments: 'Un desempeño muy bueno. La proactividad de Manuel es notable. 🚀'
+                    },
+                    tendencias: {
+                        history: [
+                            { month: 'Abril', score: 88, change: 1 },
+                            { month: 'Mayo', score: 89, change: 1 },
+                            { month: 'Junio', score: 90, change: 1 },
+                            { month: 'Julio', score: 90, change: 0 },
+                            { month: 'Agosto', score: 90, change: 0 }
+                        ],
+                        mayorMejora: {
+                            area: 'Llamada',
+                            increment: 2,
+                            comment: 'Sigue así, tu habilidad en llamadas es un punto fuerte. 📞'
+                        },
+                        areaCritica: {
+                            area: 'Viva Engage',
+                            decrement: 1,
+                            comment: 'Participar más en la comunidad podría llevarte al siguiente nivel. 📈'
+                        }
+                    },
+                    insignias: {
+                        earned: [
+                            { name: 'Proactivo 🌱', description: 'Siempre un paso adelante en la resolución de problemas.' }
+                        ],
+                        proximas: {
+                            fortalezas: ['Proactividad en la resolución de problemas.', 'Buena comunicación en general.'],
+                            oportunidades: ['Mayor participación en la comunidad.']
+                        }
+                    }
+                }
+            }
         };
 
-        const screen1 = document.getElementById('start-screen');
-        const screen2 = document.getElementById('evaluation-screen');
-        const consultButton = document.getElementById('consult-button');
-        const backButton = document.getElementById('back-button');
-        const userInput = document.getElementById('user-input');
-        const userName = document.getElementById('user-name');
-        const userStatus = document.getElementById('user-status');
-        const detailsButton = document.getElementById('details-button');
-        const alertModal = document.getElementById('alertModal');
-        const alertMessage = document.getElementById('alertMessage');
-        const closeButton = document.querySelector('.close-button');
+        const validUsers = ['asesor01', 'asesor02', 'asesor03', 'asesor04', 'asesor05', 'asesor06', 'asesor07', 'asesor08', 'asesor09', 'asesor10', 'asesor11', 'asesor12', 'asesor13', 'asesor14', 'asesor15', 'asesor16', 'asesor17', 'asesor18'];
 
-        let myChart;
+        const input = document.getElementById('viciUser');
+        const consultarBtn = document.getElementById('consultarBtn');
+        const volverBtn = document.getElementById('volverBtn');
+        const screen1 = document.getElementById('screen1');
+        const screen2 = document.getElementById('screen2');
+        const errorMsg = document.getElementById('errorMsg');
+        
+        let currentChart = null;
 
-        // Función para mostrar la ventana modal
-        function showAlert(message) {
-            alertMessage.textContent = message;
-            alertModal.style.display = 'block';
-        }
-
-        // Cierra la ventana modal
-        closeButton.onclick = function() {
-            alertModal.style.display = 'none';
-        }
-
-        window.onclick = function(event) {
-            if (event.target == alertModal) {
-                alertModal.style.display = 'none';
-            }
-        }
-
-        // Manejador de clic para el botón de consultar
-        consultButton.addEventListener('click', () => {
-            const user = userInput.value.trim();
-            if (asesorData[user]) {
-                displayEvaluation(asesorData[user]);
-                screen1.classList.add('hidden');
-                screen2.classList.remove('hidden');
-            } else {
-                showAlert("El usuario '" + user + "' no se encontró. Por favor, intente con un usuario válido.");
-            }
-        });
-
-        // Manejador de clic para el botón de volver
-        backButton.addEventListener('click', () => {
+        // Función para cambiar de pantalla
+        function showScreen(screenId) {
+            screen1.classList.add('hidden');
             screen2.classList.add('hidden');
-            screen1.classList.remove('hidden');
-            if (myChart) {
-                myChart.destroy();
-            }
-            userInput.value = '';
-            // Volver a la pestaña de resumen
-            document.querySelector('.tab-button.active').classList.remove('active');
-            document.querySelector('.tab-content.active').classList.remove('active');
-            document.querySelector('[data-tab="summary"]').classList.add('active');
-            document.getElementById('summary').classList.add('active');
-        });
+            document.getElementById(screenId).classList.remove('hidden');
+        }
 
-        // Manejador de clic para el botón de detalles
-        detailsButton.addEventListener('click', () => {
-            const user = userInput.value.trim();
-            if (asesorData[user] && asesorData[user].summary.detailsUrl) {
-                window.open(asesorData[user].summary.detailsUrl, '_blank');
-            } else {
-                showAlert("No hay un enlace de detalles de evaluación disponible para este usuario.");
-            }
-        });
+        // Función para renderizar la segunda pantalla con los datos del asesor
+        function renderScreen2(user) {
+            const asesorData = data[user];
+            if (!asesorData) return;
 
-        // Manejador de clics para las pestañas
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', () => {
-                document.querySelector('.tab-button.active').classList.remove('active');
-                document.querySelector('.tab-content.active').classList.remove('active');
-                button.classList.add('active');
-                const tabId = button.getAttribute('data-tab');
-                document.getElementById(tabId).classList.add('active');
+            // Datos de la pestaña "Resumen General"
+            document.getElementById('asesorName').textContent = asesorData.name;
+            document.getElementById('asesorUser').textContent = user;
+            document.getElementById('generalScore').textContent = asesorData.scores.resumen.general;
+            document.getElementById('generalProgressBar').style.width = `${asesorData.scores.resumen.general}%`;
+            document.getElementById('callsTarget').textContent = `${asesorData.scores.resumen.calls}%`;
+            document.getElementById('callsProgressBar').style.width = `${asesorData.scores.resumen.calls}%`;
+            document.getElementById('generalComments').textContent = asesorData.scores.resumen.generalComments;
 
-                // Si se cambia a la pestaña de tendencias, renderizar el gráfico
-                if (tabId === 'trends') {
-                    const user = userInput.value.trim();
-                    if (asesorData[user]) {
-                        renderChart(asesorData[user].trends.scores);
-                    }
-                } else if (myChart) {
-                    myChart.destroy(); // Destruir el gráfico si se cambia de pestaña
-                }
+            // Renderizar criterios de evaluación
+            const criteriaContainer = document.getElementById('evaluationCriteria');
+            criteriaContainer.innerHTML = '';
+            asesorData.scores.resumen.criteria.forEach(criterio => {
+                const card = document.createElement('div');
+                card.classList.add('card', 'bg-gray-50', 'p-4', 'rounded-xl', 'relative', 'cursor-pointer', 'min-h-[150px]');
+                card.onclick = () => card.classList.toggle('flipped');
+                card.innerHTML = `
+                    <div class="card-front flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-bold text-gray-800 flex items-center mb-1">
+                                <span class="emoji">📝</span> ${criterio.name}
+                            </h4>
+                            <p class="text-3xl font-extrabold text-blue-cnci">${criterio.score}%</p>
+                        </div>
+                        <div class="mt-2">
+                            <span class="text-sm font-semibold text-gray-700">Comentario (Supervisión):</span>
+                            <p class="text-xs text-gray-500 italic mt-1">"${criterio.comments.supervisión}"</p>
+                        </div>
+                    </div>
+                    <div class="card-back flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-bold text-gray-800 flex items-center mb-1">
+                                <span class="emoji">💎</span> ${criterio.name}
+                            </h4>
+                            <p class="text-3xl font-extrabold text-orange-cnci">${criterio.score}%</p>
+                        </div>
+                        <div class="mt-2">
+                            <span class="text-sm font-semibold text-gray-700">Comentario (Calidad):</span>
+                            <p class="text-xs text-gray-500 italic mt-1">"${criterio.comments.calidad}"</p>
+                        </div>
+                    </div>
+                `;
+                criteriaContainer.appendChild(card);
             });
-        });
 
-        // Función principal para mostrar los datos de evaluación
-        function displayEvaluation(data) {
-            // Llenar información de la cabecera
-            userName.textContent = data.name;
-            userStatus.textContent = data.status;
-
-            // Llenar datos de la pestaña de Resumen
-            document.getElementById('general-score').textContent = `${data.summary.generalScore}%`;
-            document.getElementById('general-score-bar').style.width = `${data.summary.generalScore}%`;
-            document.getElementById('calls-goal').textContent = `${data.summary.callsGoal}%`;
-            document.getElementById('calls-goal-bar').style.width = `${data.summary.callsGoal}%`;
-
-            const criteriaContainer = document.getElementById('criteria-container');
-            criteriaContainer.innerHTML = ''; // Limpiar el contenedor
-            const emojiMap = {
-                "Retención": "🤝",
-                "Reincorporación": "↩️",
-                "Procesos": "⚙️",
-                "Llamada": "☎️",
-                "WhatsApp": "📱",
-                "Correo electrónico": "📧",
-                "Viva Engage": "🗣️",
-                "Actividades administrativas": "📝"
+            // Datos de la pestaña "Tendencias"
+            const chartData = {
+                labels: asesorData.scores.tendencias.history.map(item => item.month),
+                datasets: [{
+                    label: 'Puntaje General',
+                    data: asesorData.scores.tendencias.history.map(item => item.score),
+                    borderColor: '#2a6aff',
+                    backgroundColor: 'rgba(42, 106, 255, 0.2)',
+                    fill: true,
+                    tension: 0.4
+                }]
             };
 
-            for (const key in data.summary.criteria) {
-                const score = data.summary.criteria[key].score;
-                const comment = data.summary.criteria[key].comment;
-                const emoji = emojiMap[key] || "✔️";
-                const criteriaDiv = `
-                    <div class="card p-4 rounded-xl">
-                        <h4 class="text-xl font-semibold mb-2">${key} ${emoji}</h4>
-                        <div class="flex items-center mb-2">
-                            <span class="text-2xl font-bold text-cnci-blue mr-4">${score}%</span>
-                            <div class="w-full progress-bar-container">
-                                <div class="progress-bar bg-cnci-blue" style="width: ${score}%;"></div>
-                            </div>
-                        </div>
-                        <div class="comment-box p-3 text-sm rounded-r-xl">
-                            <p class="text-gray-700 italic">${comment}</p>
-                        </div>
-                    </div>
-                `;
-                criteriaContainer.innerHTML += criteriaDiv;
-            }
-            document.getElementById('supervisor-comments').textContent = data.summary.supervisorComments;
-
-            // Llenar datos de la pestaña de Tendencias
-            const comparisonContainer = document.getElementById('comparison-container');
-            comparisonContainer.innerHTML = '';
-            for (const key in data.trends.comparison) {
-                const comparisonData = data.trends.comparison[key];
-                const changeEmoji = comparisonData.diff > 0 ? "🔼" : (comparisonData.diff < 0 ? "🔽" : "");
-                const changeColor = comparisonData.diff > 0 ? "text-green-500" : (comparisonData.diff < 0 ? "text-red-500" : "text-gray-500");
-                const comparisonDiv = `
-                    <div class="bg-gray-100 p-4 rounded-xl text-center">
-                        <h4 class="text-lg font-semibold mb-1">${comparisonData.month}</h4>
-                        <p class="text-4xl font-extrabold text-cnci-blue">${comparisonData.score}%</p>
-                        <p class="mt-1 text-sm ${changeColor}">${changeEmoji} ${Math.abs(comparisonData.diff)}% vs. Actual</p>
-                    </div>
-                `;
-                comparisonContainer.innerHTML += comparisonDiv;
-            }
-            document.getElementById('major-improvement').textContent = data.trends.majorImprovement;
-            document.getElementById('critical-area').textContent = data.trends.criticalArea;
-            document.getElementById('trends-supervisor-comments').textContent = data.trends.supervisorComments;
-
-            // Llenar datos de la pestaña de Insignias
-            const badgesContainer = document.getElementById('badges-container');
-            badgesContainer.innerHTML = '';
-            data.badges.earned.forEach(badge => {
-                const badgeDiv = `
-                    <div class="card p-4 rounded-xl text-center">
-                        <div class="bg-cnci-orange text-white w-16 h-16 mx-auto rounded-full flex items-center justify-center text-4xl mb-2">🏅</div>
-                        <h4 class="font-bold text-cnci-blue">${badge.name}</h4>
-                        <p class="text-sm text-gray-600">${badge.description}</p>
-                    </div>
-                `;
-                badgesContainer.innerHTML += badgeDiv;
-            });
-
-            const strengthsList = document.getElementById('strengths-list');
-            strengthsList.innerHTML = '';
-            data.badges.next.strengths.forEach(strength => {
-                strengthsList.innerHTML += `<li>${strength}</li>`;
-            });
-
-            const opportunitiesList = document.getElementById('opportunities-list');
-            opportunitiesList.innerHTML = '';
-            data.badges.next.opportunities.forEach(opportunity => {
-                opportunitiesList.innerHTML += `<li>${opportunity}</li>`;
-            });
-        }
-
-        // Función para renderizar el gráfico
-        function renderChart(scores) {
-            const ctx = document.getElementById('performanceChart').getContext('2d');
-            const labels = Object.keys(scores);
-            const data = Object.values(scores);
-            
-            if (myChart) {
-                myChart.destroy();
-            }
-
-            myChart = new Chart(ctx, {
+            const config = {
                 type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Calificación General',
-                        data: data,
-                        borderColor: '#2a6aff',
-                        backgroundColor: 'rgba(42, 106, 255, 0.2)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
+                data: chartData,
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            min: 50,
-                            max: 100,
-                            ticks: {
-                                callback: function(value) {
-                                    return value + '%';
-                                }
-                            }
-                        }
-                    },
                     plugins: {
                         legend: {
-                            display: true
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 50,
+                            max: 100
                         }
                     }
                 }
+            };
+
+            if (currentChart) {
+                currentChart.destroy();
+            }
+            currentChart = new Chart(
+                document.getElementById('performanceChart'),
+                config
+            );
+
+            // Comparativa mensual
+            const monthlyComparison = document.getElementById('monthlyComparison');
+            monthlyComparison.innerHTML = '';
+            const recentHistory = asesorData.scores.tendencias.history.slice(-3);
+            recentHistory.forEach(item => {
+                const changeEmoji = item.change > 0 ? '🔺' : (item.change < 0 ? '🔻' : '➡️');
+                const changeText = item.change > 0 ? `+${item.change}` : item.change;
+                monthlyComparison.innerHTML += `
+                    <div class="bg-gray-100 p-4 rounded-xl flex justify-between items-center">
+                        <div>
+                            <p class="text-lg font-semibold">${item.month}</p>
+                            <span class="text-sm text-gray-500">${item.score}</span>
+                        </div>
+                        <div class="flex items-center text-sm font-bold ${item.change > 0 ? 'text-green-500' : (item.change < 0 ? 'text-red-500' : 'text-gray-500')}">
+                            ${changeText} ${changeEmoji}
+                        </div>
+                    </div>
+                `;
             });
+            
+            document.getElementById('mayorMejora').innerHTML = `${asesorData.scores.tendencias.mayorMejora.area}: Incremento del ${asesorData.scores.tendencias.mayorMejora.increment}% en comparación con el mes pasado.`;
+            document.getElementById('comentarioMayorMejora').innerHTML = `"${asesorData.scores.tendencias.mayorMejora.comment}"`;
+
+            document.getElementById('areaCritica').innerHTML = `${asesorData.scores.tendencias.areaCritica.area}: Disminución del ${asesorData.scores.tendencias.areaCritica.decrement}% en la calidad.`;
+            document.getElementById('comentarioAreaCritica').innerHTML = `"${asesorData.scores.tendencias.areaCritica.comment}"`;
+
+            // Datos de la pestaña "Insignias"
+            const insigniasContainer = document.getElementById('insignias');
+            insigniasContainer.innerHTML = '';
+            asesorData.scores.insignias.earned.forEach(insignia => {
+                insigniasContainer.innerHTML += `
+                    <div class="flex flex-col items-center p-4 bg-gray-50 rounded-xl text-center shadow-sm">
+                        <img src="https://placehold.co/100x100/2a6aff/ffffff?text=🏅" alt="Insignia" class="mb-2">
+                        <h4 class="font-bold text-gray-800">${insignia.name}</h4>
+                        <p class="text-sm text-gray-500 mt-1">${insignia.description}</p>
+                    </div>
+                `;
+            });
+            const fortalezasList = document.getElementById('fortalezas');
+            fortalezasList.innerHTML = asesorData.scores.insignias.proximas.fortalezas.map(f => `<li>${f} 💪</li>`).join('');
+            const oportunidadesList = document.getElementById('oportunidades');
+            oportunidadesList.innerHTML = asesorData.scores.insignias.proximas.oportunidades.map(o => `<li>${o} 💡</li>`).join('');
+
         }
+
+        // Event listener para el botón de "Consultar"
+        consultarBtn.addEventListener('click', () => {
+            const user = input.value.trim().toLowerCase();
+            if (validUsers.includes(user)) {
+                renderScreen2(user);
+                showScreen('screen2');
+                errorMsg.classList.add('hidden');
+                document.getElementById('tab-resumen').click(); // Seleccionar la primera pestaña por defecto
+            } else {
+                errorMsg.classList.remove('hidden');
+            }
+        });
+
+        // Event listener para el "Enter" en el campo de texto
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                consultarBtn.click();
+            }
+        });
+
+        // Event listener para el botón de "Volver"
+        volverBtn.addEventListener('click', () => {
+            showScreen('screen1');
+            input.value = '';
+        });
+
+        // Event listeners para las pestañas
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+
+                button.classList.add('active');
+                document.getElementById(`tabContent-${button.id.split('-')[1]}`).classList.remove('hidden');
+            });
+        });
+
+        // Iniciar la aplicación
+        showScreen('screen1');
     </script>
 </body>
 </html>
